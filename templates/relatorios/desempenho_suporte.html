@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Desempenho de Suporte{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-xl-12 mb-4">
+        <p class="text-muted">Análise de volume e eficiência da equipe de suporte e serviços (ITSM).</p>
+    </div>
+</div>
+
+<div class="row">
+    {# KPI 1: Chamados Abertos #}
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Total de Chamados Abertos
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ chamados_abertos }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-bug fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# KPI 2: Resolvidos no Mês #}
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Chamados Resolvidos (Mês Atual)
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resolvidos_mes }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# KPI 3: TMR (Placeholder para Tempo Médio de Resolução) #}
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            TMR (Tempo Médio de Resolução)
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">4h 32m</div>
+                        <div class="text-xs text-muted">Média do mês atual.</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-stopwatch fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Top 10 Clientes em Volume de Chamados</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Volume de Chamados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes_top_suporte %}
+                    <tr>
+                        <td>{{ cliente.cliente__razao_social|default:"Cliente Desconhecido" }}</td>
+                        <td>{{ cliente.total_chamados }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center">Nenhum chamado registrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/logout_modal.html' %} 
+{% endblock content %}

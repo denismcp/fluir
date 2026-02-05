@@ -1,0 +1,168 @@
+{% load static %}
+
+<nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+    {# 1. Sidebar Toggle (Botão para minimizar/maximizar o menu lateral) #}
+    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+        <i class="fa fa-bars"></i>
+    </button>
+
+    {# 2. Barra de Pesquisa (Busca Rápida no ERP) #}
+    <form
+        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search"
+        hx-get="{% url 'tc_core:search_results' %}"
+        hx-trigger="submit, keyup changed delay:500ms"
+        hx-target="#search-results-dropdown"
+        hx-indicator="#search-indicator"
+    >
+        <div class="input-group">
+            <input type="text" name="q" class="form-control bg-light border-0 small" placeholder="Buscar no ERP (Clientes, POs, Chamados...)"
+                aria-label="Search" aria-describedby="basic-addon2">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search fa-sm"></i>
+                </button>
+            </div>
+        </div>
+        {# Indicador de Carregamento HTMX #}
+        <div id="search-indicator" class="htmx-indicator">
+            <small class="text-primary ml-2">Buscando...</small>
+        </div>
+        {# Resultados da Busca serão injetados aqui #}
+        <div id="search-results-dropdown" class="dropdown-menu dropdown-menu-right shadow animated--grow-in show" style="display: none; position: absolute;">
+            {# Conteúdo injetado pela view 'core:search_results' #}
+        </div>
+    </form>
+
+    {# Topbar Navbar #}
+    <ul class="navbar-nav ml-auto">
+
+        {# Item de Pesquisa (Visível em dispositivos pequenos) #}
+        <li class="nav-item dropdown no-arrow d-sm-none">
+            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-search fa-fw"></i>
+            </a>
+            {# Dropdown - Pesquisa (Mantido, não causa NoReverseMatch) #}
+            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+                aria-labelledby="searchDropdown">
+                <form class="form-inline mr-auto w-100 navbar-search">
+                    <div class="input-group">
+                        <input type="text" class="form-control bg-light border-0 small"
+                            placeholder="Buscar por..." aria-label="Search"
+                            aria-describedby="basic-addon2">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="button">
+                                <i class="fas fa-search fa-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </li>
+
+        {# 3. Item: Alertas/Notificações (Comentando links quebrados: Compras e Operações) #}
+        <li class="nav-item dropdown no-arrow mx-1">
+            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-bell fa-fw"></i>
+                {# Contador de Alertas #}
+                <span class="badge badge-danger badge-counter">3+</span> 
+            </a>
+            {# Dropdown - Alertas #}
+            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                aria-labelledby="alertsDropdown">
+                <h6 class="dropdown-header">
+                    Alertas e Notificações
+                </h6>
+                {# COMENTANDO: 'compras:requisicao_list' (MÓDULO COMPRAS) #}
+                {# <a class="dropdown-item d-flex align-items-center" href="{% url 'compras:requisicao_list' %}"> #}
+                <a class="dropdown-item d-flex align-items-center" href="#">
+                    <div class="mr-3">
+                        <div class="icon-circle bg-warning">
+                            <i class="fas fa-exclamation-triangle text-white"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="small text-gray-500">Dezembro 12, 2025</div>
+                        3 Requisições de Compra Pendentes de Aprovação!
+                    </div>
+                </a>
+                {# COMENTANDO: 'operacoes:chamado_list' (MÓDULO OPERAÇÕES) #}
+                {# <a class="dropdown-item d-flex align-items-center" href="{% url 'operacoes:chamado_list' %}"> #}
+                <a class="dropdown-item d-flex align-items-center" href="#">
+                    <div class="mr-3">
+                        <div class="icon-circle bg-danger">
+                            <i class="fas fa-bug text-white"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="small text-gray-500">Dezembro 12, 2025</div>
+                        1 Chamado de Suporte com SLA Atrasado.
+                    </div>
+                </a>
+                <a class="dropdown-item text-center small text-gray-500" href="#">Mostrar Todos Alertas</a>
+            </div>
+        </li>
+
+        {# 4. Item: Mensagens (Nenhum link quebrado aqui) #}
+        <li class="nav-item dropdown no-arrow mx-1">
+            <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-envelope fa-fw"></i>
+                {# Contador de Mensagens #}
+                <span class="badge badge-danger badge-counter">7</span> 
+            </a>
+            {# Dropdown - Mensagens #}
+            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                aria-labelledby="messagesDropdown">
+                <h6 class="dropdown-header">
+                    Interações e Mensagens
+                </h6>
+                <a class="dropdown-item text-center small text-gray-500" href="#">Ler Mais Mensagens</a>
+            </div>
+        </li>
+
+        <div class="topbar-divider d-none d-sm-block"></div>
+
+        {# 5. Item: Informação do Usuário #}
+        <li class="nav-item dropdown no-arrow">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+                    {# Exibindo nome do usuário logado #}
+                    {% if user.is_authenticated %}
+                        {{ user.first_name }} {{ user.last_name }}
+                    {% else %}
+                        Visitante
+                    {% endif %}
+                </span>
+                <img class="img-profile rounded-circle"
+                    src="{% static 'sbadmin2/img/undraw_profile.svg' %}"> {# Imagem de perfil padrão #}
+            </a>
+            {# Dropdown - Menu de Usuário #}
+            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                aria-labelledby="userDropdown">
+                {# 'core:profile' está correto, pois existe em tc_core/urls.py #}
+                <a class="dropdown-item" hx-get="{% url 'tc_core:profile' %}">
+                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Perfil
+                </a>
+                {# COMENTANDO: 'core:settings' - Verificamos que esta rota não existe em tc_core/urls.py #}
+                {# <a class="dropdown-item" href="{% url 'core:settings' %}"> #}
+                <a class="dropdown-item" href="#">
+                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Configurações
+                </a>
+                <div class="dropdown-divider"></div>
+                {# A rota 'logout' está correta, mas pode precisar de 'core:logout' dependendo do seu LOGIN_URL #}
+                <a class="dropdown-item" href="{% url 'tc_core:logout' %}" data-toggle="modal" data-target="#logoutModal">
+                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Sair
+                </a>
+            </div>
+        </li>
+
+    </ul>
+
+</nav>

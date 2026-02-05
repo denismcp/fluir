@@ -1,0 +1,139 @@
+<style>
+    .bg-premium-modal { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important; }
+    .label-premium { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 5px; display: block; }
+    .input-premium { border: 1.5px solid #e2e8f0; border-radius: 0.75rem; transition: 0.3s; padding: 0.65rem 0.75rem; width: 100%; height: 45px; }
+    .input-premium:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); outline: none; }
+    .check-beside { display: flex; align-items: center; margin-top: 5px; padding: 10px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; height: 45px; }
+    /* Estilos para Mensagens de Erro */
+    .error-feedback { color: #f5365c; font-size: 0.7rem; font-weight: 600; display: block; margin-top: 2px; }
+    .is-invalid-premium { border-color: #f5365c !important; background-color: #fff5f5 !important; }
+</style>
+
+<div class="modal-header bg-premium-modal text-white border-0 py-3">
+    <h5 class="modal-title font-weight-bold">
+        <i class="fas fa-user-shield mr-2"></i>
+        {% if form.instance.pk %}Editar Contato: {{ form.instance.primeiro_nome }}{% else %}Novo Contato Decisor{% endif %}
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form hx-post="{{ request.path }}" hx-target="#htmx-modal-content" id="contactForm">
+    {% csrf_token %}
+    <div class="modal-body p-4 bg-white">
+        
+        {% if form.errors and not form.non_field_errors %}
+            <div class="alert alert-danger py-2 small font-weight-bold border-0 shadow-sm mb-4">
+                <i class="fas fa-exclamation-circle mr-2"></i> Por favor, corrija os campos marcados em vermelho.
+            </div>
+        {% endif %}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2 small font-weight-bold border-0 shadow-sm mb-4">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="label-premium">Primeiro Nome*</label>
+                <input type="text" name="primeiro_nome" value="{{ form.primeiro_nome.value|default:'' }}" 
+                       class="form-control input-premium {% if form.primeiro_nome.errors %}is-invalid-premium{% endif %}" required>
+                {% for error in form.primeiro_nome.errors %}<span class="error-feedback">{{ error }}</span>{% endfor %}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="label-premium">Sobrenome</label>
+                <input type="text" name="sobrenome" value="{{ form.sobrenome.value|default:'' }}" class="form-control input-premium">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <label class="label-premium">E-mail Direto*</label>
+                <input type="email" name="email" value="{{ form.email.value|default:'' }}" 
+                       class="form-control input-premium {% if form.email.errors %}is-invalid-premium{% endif %}" required>
+                {% for error in form.email.errors %}<span class="error-feedback">{{ error }}</span>{% endfor %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="label-premium">Telefone Fixo</label>
+                <input type="text" name="telefone" id="id_telefone_mask" value="{{ form.telefone.value|default:'' }}" 
+                       class="form-control input-premium mask-phone" placeholder="(00) 0000-0000">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="label-premium">Celular / WhatsApp*</label>
+                <input type="text" name="celular" id="id_celular_mask" value="{{ form.celular.value|default:'' }}" 
+                       class="form-control input-premium mask-cell {% if form.celular.errors %}is-invalid-premium{% endif %}" required>
+                {% for error in form.celular.errors %}<span class="error-feedback">{{ error }}</span>{% endfor %}
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="check-beside">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" name="e_whatsapp" class="custom-control-input" id="id_e_whatsapp" {% if form.e_whatsapp.value %}checked{% endif %}>
+                        <label class="custom-control-label label-premium mb-0 ml-2" for="id_e_whatsapp" style="cursor:pointer;">Possui WhatsApp</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="check-beside">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" name="e_principal" class="custom-control-input" id="id_e_principal" {% if form.e_principal.value %}checked{% endif %}>
+                        <label class="custom-control-label label-premium mb-0 ml-2 text-primary" for="id_e_principal" style="cursor:pointer;">Contato Principal</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="label-premium">Departamento</label>
+                <input type="text" name="departamento" value="{{ form.departamento.value|default:'' }}" class="form-control input-premium" placeholder="Ex: Compras">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="label-premium">Nível Decisor</label>
+                <select name="papel_na_decisao" class="form-control input-premium">
+                    {% for val, label in form.fields.papel_na_decisao.choices %}
+                        <option value="{{ val }}" {% if form.papel_na_decisao.value == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer border-0 bg-light p-4">
+        <button type="button" class="btn btn-link text-muted font-weight-bold" data-dismiss="modal">Descartar</button>
+        <button type="submit" class="btn btn-success px-5 font-weight-bold shadow-lg rounded-pill">
+            <i class="fas fa-check-circle mr-2"></i>Salvar Contato
+        </button>
+    </div>
+</form>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script>
+    $(document).ready(function(){
+        // Máscaras Dinâmicas
+        var SPMaskBehavior = function (val) {
+            return val.replace(/\D/g, '').length === 11 ? '(00) 00000-0000' : '(00) 0000-00009';
+        },
+        spOptions = {
+            onKeyPress: function(val, e, field, options) {
+                field.mask(SPMaskBehavior.apply({}, arguments), options);
+            }
+        };
+
+        $('.mask-cell').mask(SPMaskBehavior, spOptions);
+        $('.mask-phone').mask('(00) 0000-0000');
+
+        // FUNÇÃO CRÍTICA: Remove a máscara antes do envio para o Django não rejeitar o formato
+        $('#contactForm').on('submit', function() {
+            $('.mask-cell, .mask-phone').each(function() {
+                $(this).val($(this).val().replace(/\D/g, ''));
+            });
+        });
+    });
+</script>

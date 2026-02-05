@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    /* Padronização do Layout Premium */
+    .stat-card { border: none; border-radius: 12px; }
+    .bg-gradient-success { background: linear-gradient(135deg, #2dce89 0, #2dcecc 100%) !important; }
+    .bg-gradient-warning { background: linear-gradient(135deg, #ff9100 0, #ffc400 100%) !important; }
+    .bg-gradient-primary { background: linear-gradient(135deg, #5e72e4 0, #825ee4 100%) !important; }
+    .bg-gradient-info { background: linear-gradient(135deg, #11cdef 0, #1171ef 100%) !important; }
+    
+    .icon-shape {
+        width: 42px; height: 42px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: white;
+    }
+    .detail-card { border: none; border-radius: 15px; box-shadow: 0 0 2rem 0 rgba(136, 152, 170, .15); }
+    .label-custom { font-size: 0.75rem; font-weight: 700; color: #adb5bd; text-uppercase: uppercase; letter-spacing: 1px; }
+    .value-custom { font-size: 1rem; color: #32325d; font-weight: 600; }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0 mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'contratos:contrato_list' %}">Contratos</a></li>
+                    <li class="breadcrumb-item active">{{ contrato.numero_contrato|default:"Detalhes" }}</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+                <i class="fas fa-file-contract mr-2 text-primary"></i>Contrato: {{ contrato.numero_contrato|default:"S/N" }}
+            </h1>
+        </div>
+        <div>
+            <button class="btn btn-warning shadow-sm px-4" 
+                    hx-get="{% url 'contratos:contrato_update' contrato.pk %}" 
+                    hx-target="#htmx-modal-content" 
+                    data-toggle="modal" data-target="#htmx-modal">
+                <i class="fas fa-edit mr-2"></i>Editar
+            </button>
+            <a href="{% url 'contratos:contrato_list' %}" class="btn btn-outline-secondary shadow-sm px-4 ml-2">
+                <i class="fas fa-arrow-left mr-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card bg-gradient-success shadow">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-white-50 text-uppercase small font-weight-bold mb-1">Valor Mensal</h6>
+                            <span class="h4 font-weight-bold text-white mb-0">R$ {{ contrato.valor_mensal|intcomma }}</span>
+                        </div>
+                        <div class="col-auto"><div class="icon-shape shadow"><i class="fas fa-money-bill-wave"></i></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card bg-gradient-info shadow">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-white-50 text-uppercase small font-weight-bold mb-1">Início da Vigência</h6>
+                            <span class="h5 font-weight-bold text-white mb-0">{{ contrato.data_inicio|date:"d/m/Y" }}</span>
+                        </div>
+                        <div class="col-auto"><div class="icon-shape shadow"><i class="fas fa-calendar-alt"></i></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card bg-gradient-primary shadow">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-white-50 text-uppercase small font-weight-bold mb-1">Término</h6>
+                            <span class="h5 font-weight-bold text-white mb-0">{{ contrato.data_fim|date:"d/m/Y"|default:"Indeterminado" }}</span>
+                        </div>
+                        <div class="col-auto"><div class="icon-shape shadow"><i class="fas fa-calendar-times"></i></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card bg-gradient-warning shadow">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-white-50 text-uppercase small font-weight-bold mb-1">Próxima Renovação</h6>
+                            <span class="h5 font-weight-bold text-white mb-0">{{ contrato.data_proxima_renovacao|date:"d/m/Y" }}</span>
+                        </div>
+                        <div class="col-auto"><div class="icon-shape shadow"><i class="fas fa-sync-alt"></i></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 font-weight-bold text-primary">Informações do Contrato</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="label-custom">Cliente / Razão Social</label>
+                            <div class="value-custom">
+                                {% if contrato.cliente %}
+                                    {{ contrato.cliente.razao_social|default:contrato.cliente.nome_fantasia }}
+                                {% else %}
+                                    <span class="text-muted italic">Não informado</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="label-custom">Fornecedor</label>
+                            <div class="value-custom">
+                                {% if contrato.fornecedor %}
+                                    {{ contrato.fornecedor.razao_social|default:contrato.fornecedor.nome_fantasia }}
+                                {% else %}
+                                    <span class="text-muted italic">N/A</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label class="label-custom">Objeto do Contrato</label>
+                            <div class="value-custom" style="white-space: pre-line;">{{ contrato.objeto_contrato }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 font-weight-bold text-primary">Financeiro e Status</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="label-custom">Situação Atual</label>
+                        <div>
+                            <span class="badge badge-pill 
+                                {% if contrato.situacao == 'ATIVO' %}badge-success{% else %}badge-primary{% endif %} px-3 py-2">
+                                {{ contrato.get_situacao_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="label-custom">Dia de Vencimento</label>
+                        <div class="value-custom">Todo dia {{ contrato.dia_vencimento }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="label-custom">Índice de Reajuste</label>
+                        <div class="value-custom"><span class="badge badge-secondary">{{ contrato.get_indice_reajuste_display }}</span></div>
+                    </div>
+                    <hr>
+                    <div class="small text-muted">
+                        <i class="fas fa-info-circle mr-1"></i> Criado em: {{ contrato.criado_em|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

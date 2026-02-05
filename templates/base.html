@@ -1,0 +1,206 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>FLUIR ERP - {% block title %}Dashboard{% endblock %}</title>
+
+    <link href="{% static 'sbadmin2/vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link href="{% static 'sbadmin2/css/sb-admin-2.min.css' %}" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
+    {% block extra_css %}{% endblock %}
+    <script src="https://unpkg.com/htmx.org@1.9.9"></script>
+</head>
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'partials/sidebar.html' %}
+
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'partials/navbar.html' %}
+
+                <div class="container-fluid mt-3">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow" role="alert">
+                                {% if message.tags == 'success' %}
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                {% elif message.tags == 'error' or message.tags == 'danger' %}
+                                    <i class="fas fa-exclamation-circle mr-2"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                {% endif %}
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                {% block content %}{% endblock %}
+            </div>
+            {% include 'partials/footer.html' %}
+        </div>
+    </div>
+
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    {# MODAL GLOBAL #}
+    <div class="modal fade" id="htmx-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" id="htmx-modal-content">
+                {# Conteúdo dinâmico aqui #}
+            </div>
+        </div>
+    </div>
+
+    {# MODAL SECUNDÁRIA (Necessária para o "+" de Fornecedor sem fechar a Despesa) #}
+    <div class="modal fade" id="secondary-modal" tabindex="-1" role="dialog" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content shadow-lg border-0" id="secondary-modal-content">
+                {# Conteúdo dinâmico do fornecedor aqui #}
+            </div>
+        </div>
+    </div>
+
+    {# SCRIPTS OBRIGATÓRIOS #}
+    <script src="{% static 'sbadmin2/vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'sbadmin2/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'sbadmin2/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+    <script src="{% static 'sbadmin2/js/sb-admin-2.min.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        // Função para inicializar Select2 em qualquer container (Modal ou Página)
+        function initSelect2(container) {
+            $(container).find('.select2').each(function() {
+                $(this).select2({
+                    dropdownParent: $(this).closest('.modal'),
+                    width: '100%'
+                });
+            });
+        }
+
+        // Ajustado para fechar a Modal da Nova Fatura
+ //DENIS
+ //        document.body.addEventListener('htmx:afterSwap', function(event) { 
+ // Inicializa componentes Premium se o conteúdo mudou em uma modal
+//            if (event.detail.target.id === 'htmx-modal-content' || event.detail.target.id === 'secondary-modal-content') {
+//                initSelect2(event.detail.target);
+//            }
+//
+//            // Lógica original de fechar modal
+//            if (event.detail.target.id === 'htmx-modal-content') {
+//                if (event.detail.xhr.status === 204) {
+//                    $('#htmx-modal').modal('hide');
+//                    $('.modal-backdrop').remove(); // Garante a remoção do fundo escuro
+//                    $('body').removeClass('modal-open');
+//                }
+//            }
+//        });
+
+        document.body.addEventListener('htmx:afterSwap', function(event) {
+            // Garante que se o conteúdo da modal mudar, o Select2 seja reiniciado
+            if (event.detail.target.id === 'htmx-modal-content') {
+                initSelect2(event.detail.target);
+            }
+            
+            // CORREÇÃO: Fechamento forçado ao receber 204
+            if (event.detail.xhr.status === 204) {
+                $('#htmx-modal').modal('hide'); // Fecha via JQuery (Padrão Bootstrap 4)
+                $('.modal-backdrop').remove();  // Remove a sombra escura
+                $('body').removeClass('modal-open');
+            }
+        });
+        $('#htmx-modal').on('hidden.bs.modal', function () {
+            $(this).find('#htmx-modal-content').html("");
+        });
+
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+
+        document.body.addEventListener('htmx:responseError', function (event) {
+            console.error("Erro na resposta do servidor:", event.detail.xhr.status);
+        });
+
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            if (evt.detail.xhr.status === 204) {
+                // 1. Fecha a modal
+                $('#htmx-modal').modal('hide');
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open');
+
+                // 2. Dispara o refresh da tabela
+                const trigger = evt.detail.xhr.getResponseHeader('HX-Trigger');
+                if (trigger === 'faturaAtualizada') {
+                    htmx.trigger('#fatura-tbody', 'faturaAtualizada');
+                }
+            }
+        });
+
+        // CORREÇÃO CRÍTICA: Força a abertura visual da modal após a carga do HTMX
+        document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+        // Garante que só dispare o 'show' se o alvo for realmente o conteúdo da modal
+            if (evt.detail.target.id === 'htmx-modal-content') {
+                // Se a modal não estiver aberta, abre.
+                if (!$('#htmx-modal').is(':visible')) {
+                    $('#htmx-modal').modal('show');
+                }
+            }
+        });
+
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 5000);
+
+        document.body.addEventListener('faturaAtualizada', function() {
+            // 1. Fecha a modal (Bootstrap 4 padrão)
+            $('#htmx-modal').modal('hide'); 
+            
+            // 2. Opcional: Recarregar a lista de faturas ao fundo
+            // Se você tiver uma lista gerenciada por HTMX, pode disparar um hx-trigger nela
+            
+            // 3. Feedback visual (Opcional)
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso!',
+                text: 'Fatura lançada corretamente.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        });
+
+        document.body.addEventListener('despesaAtualizada', function() {
+            // 1. Fecha a modal
+            $('#htmx-modal').modal('hide'); 
+            
+            // 2. Limpeza crítica para evitar tela esmaecida/travada
+            $('body').removeClass('modal-open');
+            $('.modal-backdrop').remove();
+
+            // 3. Feedback visual opcional (usando o SweetAlert que já vi no seu código)
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso!',
+                text: 'Operação realizada no sistema Fluir.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

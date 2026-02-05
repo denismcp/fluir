@@ -1,0 +1,33 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title"><i class="fas fa-tools mr-2"></i>{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Serviço</h5>
+    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+</div>
+
+<form hx-post="{{ request.path }}" hx-target="#htmx-modal-content">
+    {% csrf_token %}
+    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        <div class="row">
+            <div class="col-md-12">{{ form.nome|as_crispy_field }}</div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                {{ form.codigo_interno|as_crispy_field }}
+                <small class="text-muted d-block mt-n2">Vazio para gerar <b>SER-XXX</b></small>
+            </div>
+            <div class="col-md-6">{{ form.preco_venda_padrao|as_crispy_field }}</div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">{{ form.descricao_curta|as_crispy_field }}</div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-6">{{ form.ativo|as_crispy_field }}</div>
+        </div>
+        <input type="hidden" name="tipo_produto" value="SERV">
+    </div>
+    <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary shadow-sm"><i class="fas fa-save mr-1"></i> Salvar Serviço</button>
+    </div>
+</form>

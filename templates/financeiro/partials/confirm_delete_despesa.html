@@ -1,0 +1,49 @@
+{% load humanize %}
+<div class="modal-header bg-danger text-white border-0 py-3">
+    <h5 class="modal-title font-weight-bold">
+        <i class="fas fa-exclamation-triangle mr-2"></i> Confirmar Exclusão
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form hx-post="{% url 'financeiro:despesa_delete' object.pk %}" 
+      hx-target="#despesa-row-{{ object.pk }}" 
+      hx-swap="outerHTML swap:0.5s"
+      hx-on::after-request="if(event.detail.successful) $('#htmx-modal').modal('hide');">
+    {% csrf_token %}
+    
+    <div class="modal-body text-center py-4 bg-light">
+        <div class="mb-3">
+            <i class="fas fa-file-invoice-dollar fa-4x text-danger opacity-25"></i>
+        </div>
+        
+        <p class="h5 mb-3 text-gray-800 font-weight-bold">Deseja remover este lançamento?</p>
+        
+        <p class="text-muted text-sm">
+            Você está prestes a excluir permanentemente a despesa: <br>
+            <strong class="text-danger">{{ object.descricao }}</strong><br>
+            <span class="badge badge-light border mt-2 px-3 py-2 rounded-pill font-weight-bold">
+                Valor: R$ {{ object.valor_original|intcomma }}
+            </span>
+        </p>
+        
+        <div class="alert alert-warning small mb-0 mt-3 border-0 shadow-sm rounded-12 text-left">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle fa-2x mr-3 text-warning opacity-75"></i>
+                <div>
+                    <strong class="d-block">Atenção:</strong>
+                    Esta ação removerá o registro do fluxo de caixa e atualizará seus indicadores. Esta operação não pode ser desfeita.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer bg-white border-0 justify-content-center pb-4">
+        <button type="button" class="btn btn-link text-muted font-weight-bold" data-dismiss="modal">Manter Lançamento</button>
+        <button type="submit" class="btn btn-danger rounded-pill px-4 shadow-sm font-weight-bold">
+            <i class="fas fa-trash-alt mr-2"></i>Sim, Confirmar Exclusão
+        </button>
+    </div>
+</form>

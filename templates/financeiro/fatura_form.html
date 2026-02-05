@@ -1,0 +1,147 @@
+{% load crispy_forms_tags %}
+
+<style>
+    /* DESIGN SYSTEM FORM ULTRA PREMIUM V7 */
+    .modal-premium-content {
+        border-radius: 28px;
+        border: none;
+        background: #fdfdfe;
+        overflow: hidden;
+        box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.3);
+    }
+    .modal-premium-header {
+        background: linear-gradient(135deg, #1a1c23 0%, #2c3e50 100%);
+        padding: 1.8rem 2.5rem;
+        border: none;
+    }
+    .form-group label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #64748b;
+        letter-spacing: 0.8px;
+        margin-bottom: 8px;
+    }
+    .premium-section-divider {
+        font-size: 0.75rem;
+        font-weight: 900;
+        color: #4e73df;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        display: flex;
+        align-items: center;
+        margin: 25px 0 15px 0;
+    }
+    .premium-section-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #f1f5f9;
+        margin-left: 15px;
+    }
+    .premium-footer {
+        background: #f8fafc;
+        padding: 1.5rem 2.5rem;
+        border-top: 1px solid #f1f5f9;
+    }
+    .monetary-field input {
+        font-size: 1.2rem !important;
+        font-weight: 900 !important;
+        color: #1e293b !important;
+        background: #f0f7ff !important;
+        border: 1px solid #e0e7ff !important;
+    }
+</style>
+
+<div class="modal-premium-content">
+    <div class="modal-premium-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-3 shadow-lg" style="width: 50px; height: 50px;">
+                <i class="fas {% if form.instance.pk %}fa-edit{% else %}fa-plus{% endif %} fa-lg"></i>
+            </div>
+            <div>
+                <h5 class="modal-title font-weight-900 text-white mb-0">
+                    {% if form.instance.pk %}EDITAR FATURA #{{ form.instance.numero_documento }}{% else %}NOVA FATURA{% endif %}
+                </h5>
+                <p class="text-white-50 small mb-0 font-weight-bold">Controle Financeiro de Alta Performance</p>
+            </div>
+        </div>
+        <button type="button" class="close text-white" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <form hx-post="{% if form.instance.pk %}{% url 'financeiro:fatura_update' form.instance.pk %}{% else %}{% url 'financeiro:fatura_create' %}{% endif %}" 
+          hx-target="#htmx-modal-content" novalidate>
+        {% csrf_token %}
+        <div class="modal-body p-4 p-md-5" style="max-height: 70vh; overflow-y: auto;">
+            
+            <div class="premium-section-divider">1. Dados do Cliente</div>
+            <div class="row">
+                <div class="col-12 mb-3">
+                    {{ form.cliente|as_crispy_field }}
+                </div>
+                <div class="col-12">
+                    {{ form.descricao|as_crispy_field }}
+                </div>
+            </div>
+
+            <div class="premium-section-divider">2. Valores e Prazos</div>
+            <div class="row mt-3">
+                <div class="col-md-6 monetary-field">
+                    {{ form.valor_original|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.valor_desconto|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.data_vencimento|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.data_competencia|as_crispy_field }}
+                </div>
+            </div>
+
+            <div class="premium-section-divider">3. Classificação</div>
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form.tipo_titulo|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.forma_pagamento|as_crispy_field }}
+                </div>
+                <div class="col-12 mt-2">
+                    {{ form.observacoes|as_crispy_field }}
+                </div>
+            </div>
+        </div>
+
+        <div class="premium-footer d-flex align-items-center justify-content-between">
+            <button type="button" class="btn btn-link text-muted font-weight-800 text-decoration-none px-0" data-dismiss="modal">
+                CANCELAR
+            </button>
+            
+            {% if form.instance.status == 'pago' %}
+                <div class="alert alert-light border mb-0 py-2 px-3 rounded-pill">
+                    <i class="fas fa-lock mr-2 text-warning"></i>
+                    <span class="small font-weight-bold text-muted uppercase">Registo Liquidado (Somente Leitura)</span>
+                </div>
+            {% else %}
+                <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 shadow-lg font-weight-900 border-0" 
+                        style="background: linear-gradient(90deg, #4e73df 0%, #224abe 100%);"
+                        hx-disabled-elt="this">
+                    <i class="fas fa-check-circle mr-2"></i>SALVAR ALTERAÇÕES
+                </button>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            dropdownParent: $('#htmx-modal'),
+            width: '100%'
+        });
+    });
+</script>

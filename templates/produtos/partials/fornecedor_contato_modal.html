@@ -1,0 +1,105 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title d-flex align-items-center">
+        <i class="fas {% if contato %}fa-user-edit{% else %}fa-user-plus{% endif %} mr-2"></i> 
+        <span>{% if contato %}Editar Contato: {{ contato.nome }}{% else %}Novo Contato Adicional{% endif %}</span>
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+</div>
+
+<form hx-post="{% if contato %}{% url 'produtos:fornecedor_contato_edit' contato.pk %}{% else %}{% url 'produtos:fornecedor_contato_add' fornecedor.pk %}{% endif %}" 
+      hx-target="#htmx-modal-content">
+    {% csrf_token %}
+    <div class="modal-body bg-light">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-md-8">
+                        {{ form.nome|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                            {{ form.eh_principal }}
+                            <label class="custom-control-label font-weight-bold text-primary" for="{{ form.eh_principal.id_for_label }}">
+                                Contato Principal
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-5">
+                        {{ form.cargo|as_crispy_field }}
+                    </div>
+                    <div class="col-md-7">
+                        <label class="font-weight-bold text-dark">Categorias Atendidas</label>
+                        {{ form.categorias }}
+                        <small class="text-muted">Quais departamentos este contato resolve?</small>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-0">
+                            <label class="font-weight-bold text-dark"><i class="fas fa-envelope mr-1 text-muted"></i> E-mail</label>
+                            {{ form.email }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-0">
+                            <label class="font-weight-bold text-dark"><i class="fas fa-phone mr-1 text-muted"></i> Telefone/WhatsApp</label>
+                            {{ form.telefone }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer bg-white border-top d-flex justify-content-between">
+        <div>
+            {% if contato %}
+                <<button type="button" 
+                        class="btn btn-outline-danger shadow-sm"
+                        hx-get="{% url 'produtos:fornecedor_contato_delete' contato.pk %}"
+                        hx-target="#htmx-modal-content">
+                    <i class="fas fa-trash-alt mr-1"></i> Excluir
+                </button>
+            {% endif %}
+        </div>
+        <div>
+            <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary px-5 shadow-sm font-weight-bold">
+                <i class="fas fa-save mr-1"></i> {% if contato %}Atualizar{% else %}Salvar{% endif %} Contato
+            </button>
+        </div>
+    </div>
+</form>
+
+<script>
+    (function() {
+        // Inicializa Máscara de Telefone
+        const telInput = document.querySelector('[name="telefone"]');
+        if (telInput) {
+            telInput.addEventListener('input', (e) => {
+                let v = e.target.value.replace(/\D/g, "");
+                v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+                if (v.length > 13) v = v.replace(/(\d{5})(\d)/, "$1-$2");
+                else v = v.replace(/(\d{4})(\d)/, "$1-$2");
+                e.target.value = v.substring(0, 15);
+            });
+        }
+
+        // Inicializa o Select2 para as categorias dentro da modal
+        if ($.fn.select2) {
+            $('[name="categorias"]').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Selecione as categorias...',
+                width: '100%',
+                dropdownParent: $('#htmx-modal') // Essencial para funcionar dentro de modal
+            });
+        }
+    })();
+</script>

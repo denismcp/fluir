@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Oportunidade: {{ oportunidade.nome }}{% endblock %}
+
+{% block content %}
+<style>
+    /* Padronização do Layout Premium */
+    .stat-card { border: none; border-radius: 12px; }
+    .bg-gradient-success { background: linear-gradient(135deg, #2dce89 0, #2dcecc 100%) !important; }
+    .bg-gradient-warning { background: linear-gradient(135deg, #ff9100 0, #ffc400 100%) !important; }
+    .bg-gradient-primary { background: linear-gradient(135deg, #5e72e4 0, #825ee4 100%) !important; }
+    .bg-gradient-info { background: linear-gradient(135deg, #11cdef 0, #1171ef 100%) !important; }
+    
+    .value-custom a:hover, td a:hover {
+    text-decoration: underline !important;
+    filter: brightness(85%);
+    }
+
+    .icon-shape {
+        width: 40px; height: 40px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: white;
+    }
+    .detail-card { border: none; border-radius: 15px; box-shadow: 0 0 2rem 0 rgba(136, 152, 170, .15); }
+    .label-custom { font-size: 0.75rem; font-weight: 700; color: #adb5bd; text-uppercase: uppercase; letter-spacing: 1px; }
+    .value-custom { font-size: 1rem; color: #32325d; font-weight: 600; }
+
+    /* Estilos da Timeline */
+    .timeline-container { position: relative; padding-left: 35px; border-left: 2px solid #e9ecef; margin-left: 15px; }
+    .timeline-item { position: relative; }
+    .timeline-icon {
+        position: absolute; left: -49px; top: 0;
+        background: white; padding: 4px; border-radius: 50%;
+    }
+    .timeline-icon .icon-shape { width: 28px; height: 28px; font-size: 0.75rem; }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0 mb-1 small">
+                    <li class="breadcrumb-item"><a href="{% url 'crm:kanban' %}">Pipeline</a></li>
+                    <li class="breadcrumb-item active">{{ oportunidade.nome }}</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+                <i class="fas fa-lightbulb text-warning mr-2"></i>{{ oportunidade.nome }}
+            </h1>
+        </div>
+        <div class="d-flex">
+            <form action="{% url 'crm:oportunidade_duplicar' oportunidade.pk %}" method="POST" class="mr-2">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-info shadow-sm" onclick="return confirm('Deseja duplicar esta oportunidade?')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </form>
+            <button class="btn btn-warning shadow-sm px-4 mr-2"
+                    hx-get="{% url 'crm:oportunidade_update' oportunidade.pk %}"
+                    hx-target="#htmx-modal-content"
+                    data-toggle="modal" data-target="#htmx-modal">
+                <i class="fas fa-edit mr-1"></i> Editar
+            </button>
+            <a href="{% url 'crm:kanban' %}" class="btn btn-outline-secondary shadow-sm">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card bg-gradient-success shadow">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-white-50 text-uppercase small font-weight-bold mb-1">Valor Estimado</h6>
+                            <span class="h4 font-weight-bold text-white mb-0">R$ {{ oportunidade.valor_estimado|intcomma }}</span>
+                        </div>
+                        <div class="col-auto"><div class="icon-shape shadow"><i class="fas fa-dollar-sign"></i></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card bg-gradient-primary shadow">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-white-50 text-uppercase small font-weight-bold mb-1">Etapa Atual</h6>
+                            <span class="h5 font-weight-bold text-white mb-0">{{ oportunidade.etapa.nome }}</span>
+                        </div>
+                        <div class="col-auto"><div class="icon-shape shadow"><i class="fas fa-layer-group"></i></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card bg-gradient-info shadow">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-white-50 text-uppercase small font-weight-bold mb-1">Previsão de Fechamento</h6>
+                            <span class="h5 font-weight-bold text-white mb-0">{{ oportunidade.data_fechamento_prevista|date:"d/m/Y" }}</span>
+                        </div>
+                        <div class="col-auto"><div class="icon-shape shadow"><i class="fas fa-calendar-check"></i></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-user-tie mr-2"></i>Informações do Cliente</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="label-custom">Razão Social</label>
+                            <div class="value-custom">
+                                <a href="{% url 'crm:cliente_detail' oportunidade.cliente.pk %}" class="text-decoration-none text-primary">
+                                    {{ oportunidade.cliente.razao_social }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 border-left">
+                            <label class="label-custom">Contato Principal (Cliente)</label>
+                            <div class="value-custom">
+                                {# Busca apenas o contato marcado como principal para exibição única #}
+                                {% with contato_p=oportunidade.cliente.contato_set.all %}
+                                    {% if contato_p.exists %}
+                                        {% for c in contato_p %}
+                                            {% if c.e_principal %}
+                                                <span class="text-dark font-weight-bold">{{ c.primeiro_nome }} {{ c.sobrenome }}</span>
+                                                <br><small class="text-muted"><i class="fas fa-envelope mr-1"></i>{{ c.email }}</small>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted small">Nenhum contato cadastrado</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-file-invoice-dollar mr-2"></i>Propostas Enviadas</h6>
+                    <button class="btn btn-sm btn-primary rounded-pill px-3"
+                            hx-get="{% url 'crm:proposta_create' oportunidade.pk %}"
+                            hx-target="#htmx-modal-content"
+                            data-toggle="modal" data-target="#htmx-modal">
+                        <i class="fas fa-plus mr-1"></i> Nova Proposta
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-items-center mb-0">
+                            <thead class="bg-light small text-muted">
+                                <tr>
+                                    <th class="border-0 px-4">Nº</th>
+                                    <th class="border-0">Data</th>
+                                    <th class="border-0">Valor</th>
+                                    <th class="border-0">Status</th>
+                                    <th class="border-0 text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for proposta in propostas %}
+                                <tr>
+                                    <td class="px-4 font-weight-bold">
+                                        <a href="javascript:void(0);" 
+                                           class="text-primary text-decoration-none"
+                                           hx-get="{% url 'crm:proposta_update' proposta.pk %}" 
+                                           hx-target="#htmx-modal-content" 
+                                           data-toggle="modal" 
+                                           data-target="#htmx-modal">
+                                            #{{ proposta.id_proposta }}
+                                        </a>
+                                    </td>
+                                    <td>{{ proposta.data_criacao|date:"d/m/Y" }}</td>
+                                    <td class="text-success font-weight-bold">R$ {{ proposta.valor_total|intcomma }}</td>
+                                    <td>
+                                        <span class="badge badge-pill {% if proposta.status == 'aceita' %}badge-success{% elif proposta.status == 'recusada' %}badge-danger{% else %}badge-warning{% endif %}">
+                                            {{ proposta.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-link text-muted dropdown-toggle p-0" type="button" data-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <div class="dropdown-menu shadow border-0">
+                                                <a class="dropdown-item" href="{% url 'crm:proposta_itens' proposta.pk %}">
+                                                    <i class="fas fa-eye mr-2"></i>Ver Itens
+                                                </a>
+                                                <div class="dropdown-divider"></div>
+                                                
+                                                <a class="dropdown-item" href="{% url 'crm:proposta_pdf_resumo' oport_id=oportunidade.pk %}?proposta_id={{ proposta.pk }}&modelo=simples" target="_blank">
+                                                    <i class="fas fa-file-alt mr-2 text-info"></i>Proposta Simples
+                                                </a>
+
+                                                <a class="dropdown-item" href="{% url 'crm:proposta_pdf_resumo' oport_id=oportunidade.pk %}?proposta_id={{ proposta.pk }}" target="_blank">
+                                                    <i class="fas fa-file-invoice mr-2 text-primary"></i>Proposta Resumida
+                                                </a>
+                                                
+                                                <a class="dropdown-item" href="{% url 'crm:proposta_pdf_completa' oport_id=oportunidade.pk %}?proposta_id={{ proposta.pk }}" target="_blank">
+                                                    <i class="fas fa-file-pdf mr-2 text-danger"></i>Proposta Completa
+                                                </a>
+                                                
+                                                <div class="dropdown-divider"></div>
+                                                <button class="dropdown-item text-danger" 
+                                                        hx-delete="{% url 'crm:proposta_delete' proposta.pk %}" 
+                                                        hx-confirm="Deseja excluir esta proposta permanentemente?"
+                                                        hx-target="closest tr">
+                                                    <i class="fas fa-trash mr-2"></i>Excluir
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center py-4 text-muted small">Nenhuma proposta vinculada.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-history mr-2"></i>Timeline de Interações</h6>
+                    <button class="btn btn-sm btn-primary rounded-pill px-3"
+                            hx-get="{% url 'crm:atividade_create' oportunidade.pk %}"
+                            hx-target="#htmx-modal-content"
+                            data-toggle="modal" data-target="#htmx-modal">
+                        <i class="fas fa-plus mr-1"></i> Registrar
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="timeline-container">
+                        {% for atividade in atividades %}
+                        <div class="timeline-item mb-4">
+                            <div class="timeline-icon">
+                                <span class="icon-shape shadow-sm 
+                                    {% if atividade.tipo == 'CALL' %}bg-gradient-info
+                                    {% elif atividade.tipo == 'MEET' %}bg-gradient-warning
+                                    {% elif atividade.tipo == 'EMAIL' %}bg-gradient-primary
+                                    {% else %}bg-gradient-success{% endif %}">
+                                    {% if atividade.tipo == 'CALL' %}<i class="fas fa-phone"></i>
+                                    {% elif atividade.tipo == 'MEET' %}<i class="fas fa-users"></i>
+                                    {% elif atividade.tipo == 'EMAIL' %}<i class="fas fa-envelope"></i>
+                                    {% else %}<i class="fas fa-check-circle"></i>{% endif %}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="font-weight-bold text-dark mb-0">{{ atividade.get_tipo_display }}</span>
+                                <small class="text-muted">{{ atividade.data_execucao|date:"d/m H:i" }}</small>
+                            </div>
+                            <div class="text-muted small mb-2">{{ atividade.descricao|default:"Sem descrição." }}</div>
+                            <div class="d-flex align-items-center mt-2">
+                                <i class="fas fa-user-circle text-muted mr-1"></i>
+                                <span class="small font-weight-bold text-dark">{{ atividade.responsavel.get_full_name|default:atividade.responsavel.username }}</span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5 text-muted small">
+                            <i class="fas fa-comments fa-2x mb-3 d-block opacity-2"></i>
+                            Ainda não há registros nesta timeline.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Permite que o dropdown "escape" dos limites da tabela responsive */
+    .table-responsive {
+        overflow: visible !important;
+    }
+    
+    /* Garante que o menu dropdown fique sempre no topo de outros elementos */
+    .dropdown-menu {
+        z-index: 1050;
+    }
+</style>
+
+<script>
+    function initDropdowns() {
+        // Inicializa os dropdowns do Bootstrap
+        $('.dropdown-toggle').dropdown();
+        
+        // Correção específica: Força o fechamento ao clicar fora, 
+        // essencial para quando o HTMX reinserir elementos na página
+        $(document).on('click', function (e) {
+            if (!$('.dropdown').is(e.target) && $('.dropdown').has(e.target).length === 0 && $('.show').has(e.target).length === 0) {
+                $('.dropdown-menu').removeClass('show');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', initDropdowns);
+    
+    // Reinicializa após trocas de conteúdo via HTMX
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        initDropdowns();
+    });
+</script>
+{% endblock %}

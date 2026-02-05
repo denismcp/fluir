@@ -1,0 +1,21 @@
+{% load crispy_forms_tags %}
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title"><i class="fas fa-file-upload mr-2"></i>Upload de Documento</h5>
+    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+</div>
+
+<form hx-post="{% url 'produtos:fornecedor_documento_add' fornecedor.pk %}" 
+      hx-encoding="multipart/form-data" 
+      hx-target="#htmx-modal-content">
+    {% csrf_token %}
+    <div class="modal-body">
+        <div class="alert alert-info small">
+            <i class="fas fa-info-circle mr-1"></i> Formatos aceitos: PDF, DOCX, Imagens.
+        </div>
+        {{ form|crispy }}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Fazer Upload</button>
+    </div>
+</form>

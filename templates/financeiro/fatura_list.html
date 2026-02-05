@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    /* DESIGN SYSTEM ULTRA PREMIUM V6 - GRID REFINADO */
+    :root {
+        --premium-bg: #f8fafc;
+        --glass-bg: rgba(255, 255, 255, 0.98);
+        --premium-shadow: 0 12px 35px rgba(0, 0, 0, 0.04);
+        --accent-primary: #4e73df;
+        --border-subtle: rgba(227, 230, 240, 0.7);
+    }
+
+    .financeiro-wrapper { display: flex; gap: 24px; height: calc(100vh - 280px); min-height: 500px; padding-bottom: 20px; }
+    
+    .grid-container { 
+        flex: 1; 
+        background: var(--glass-bg); 
+        border-radius: 24px; 
+        box-shadow: var(--premium-shadow); 
+        border: 1px solid var(--border-subtle);
+        overflow: hidden; 
+        display: flex; 
+        flex-direction: column; 
+    }
+
+    /* BARRA DE PESQUISA */
+    .search-bar-container {
+        background: white;
+        padding: 15px 25px;
+        border-bottom: 1px solid var(--border-subtle);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .input-search-premium {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 8px 15px 8px 40px;
+        font-size: 0.85rem;
+        width: 350px;
+    }
+
+    /* ESTABILIZADOR DE TABELA */
+    .table-spreadsheet { 
+        font-size: 0.9rem; /* Aumentado de 0.82 para 0.9 para melhor leitura */
+        border-collapse: separate; 
+        border-spacing: 0; 
+        width: 100%; 
+        table-layout: fixed; 
+    }
+    
+    .table-spreadsheet thead th { 
+        background: #fcfcfd; 
+        position: sticky; 
+        top: 0; 
+        z-index: 10; 
+        border-bottom: 2px solid #f1f3f9; 
+        color: #64748b; 
+        font-weight: 800; 
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        font-size: 0.7rem; /* Aumentado ligeiramente */
+        padding: 18px 14px; 
+        cursor: pointer;
+        white-space: nowrap; /* Garante que títulos não quebrem linha */
+    }
+
+    /* LARGURAS AJUSTADAS PARA UX REFINADO */
+    .col-check { width: 45px; min-width: 45px; }
+    .col-status { width: 140px; min-width: 140px; }
+    .col-doc { width: 145px; min-width: 145px; }
+    .col-cliente { width: 220px; min-width: 220px; }
+    .col-desc { width: auto; min-width: 350px; } 
+    .col-data { width: 135px; min-width: 135px; } /* Aumentado para o título VENCIMENTO caber em uma linha */
+    .col-valor-original { width: 145px; min-width: 145px; text-align: right; } /* Aumentado para valores */
+    .col-valor { width: 155px; min-width: 155px; text-align: right; } /* Aumentado para saldo */
+
+    .nowrap { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .font-code { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #4e73df !important; } /* Aumentado de 0.75 para 0.8 */
+
+    /* STATUS COLORS */
+    /* STATUS COLORS - ALTO CONTRASTE PREMIUM */
+    /* STATUS COLORS - ALTO CONTRASTE PREMIUM */
+    .badge-status {
+        padding: 6px 14px;
+        border-radius: 50px; /* Estilo pílula */
+        font-weight: 800;
+        font-size: 0.65rem;
+        text-align: center;
+        display: inline-block; /* Ajustado para centralização */
+        color: #ffffff !important; /* Fonte Branca Obrigatória */
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Cores Sólidas Solicitadas */
+    .status-pago { background-color: #28a745 !important; border: none; }     /* Verde */
+    .status-aberto { background-color: #f6c23e !important; border: none; }   /* Amarelo/Dourado */
+    .status-atrasado { background-color: #e74a3b !important; border: none; } /* Vermelho */
+
+    /* Fontes específicas para dados financeiros */
+    .data-cell { font-size: 0.88rem; font-weight: 600; color: #334155; }
+    .desc-cell { font-size: 0.85rem; color: #64748b; }
+    .valor-cell { font-size: 0.95rem; font-weight: 800; }
+
+    .kpi-card { border-radius: 20px; border-left: 4px solid #4e73df; cursor: pointer; transition: transform 0.2s; }
+    .kpi-card:hover { transform: translateY(-3px); }
+    
+    tr.selected { background-color: #f1f5f9 !important; border-left: 3px solid #4e73df !important; }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1 text-gray-900 font-weight-900">Fluxo de Recebíveis</h1>
+            <p class="text-muted small font-weight-bold mb-0">Gestão centralizada de faturas.</p>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm font-weight-bold" 
+                hx-get="{% url 'financeiro:fatura_create' %}" hx-target="#htmx-modal-content">
+            <i class="fas fa-plus-circle mr-2"></i>Nova Fatura
+        </button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm p-3 h-100 border-left-primary kpi-card"
+                 hx-get="{% url 'financeiro:fatura_list' %}?f=todos" hx-target="#fatura-tbody" hx-select="#fatura-tbody tr">
+                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Saldo Projetado</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ total_receber|floatformat:2|intcomma }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm p-3 h-100 kpi-card" style="border-left: 4px solid #f6c23e;"
+                 hx-get="{% url 'financeiro:fatura_list' %}?f=hoje" hx-target="#fatura-tbody" hx-select="#fatura-tbody tr">
+                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Vencendo Hoje</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ total_hoje|default:"0,00"|floatformat:2|intcomma }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm p-3 h-100 border-left-success kpi-card"
+                 hx-get="{% url 'financeiro:fatura_list' %}?f=pago" hx-target="#fatura-tbody" hx-select="#fatura-tbody tr">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Recebido (Mês)</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ total_recebido_mes|floatformat:2|intcomma }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm p-3 h-100 border-left-danger kpi-card"
+                 hx-get="{% url 'financeiro:fatura_list' %}?f=atrasado" hx-target="#fatura-tbody" hx-select="#fatura-tbody tr">
+                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Inadimplência</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ total_vencido|floatformat:2|intcomma }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="financeiro-wrapper">
+        <div class="grid-container">
+            <div class="search-bar-container">
+                <div class="position-relative">
+                    <i class="fas fa-search position-absolute" style="left: 15px; top: 11px; color: #94a3b8;"></i>
+                    <input type="text" name="q" class="input-search-premium" 
+                           placeholder="Buscar..."
+                           hx-get="{% url 'financeiro:fatura_list' %}"
+                           hx-trigger="keyup changed delay:500ms"
+                           hx-target="#fatura-tbody"
+                           hx-select="#fatura-tbody tr">
+                </div>
+                <button class="btn btn-light btn-sm rounded-pill px-3 border" onclick="window.location.reload()">
+                    <i class="fas fa-eraser mr-1"></i> Limpar e Atualizar
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-spreadsheet mb-0" id="tabelaFaturas">
+                    <thead>
+                        <tr>
+                            <th class="col-check text-center"><input type="checkbox"></th>
+                            <th class="col-status" onclick="sortTable(1)">STATUS <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                            <th class="col-doc" onclick="sortTable(2)">DOCUMENTO <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                            <th class="col-cliente" onclick="sortTable(3)">NOME FANTASIA <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                            <th class="col-desc" onclick="sortTable(4)">DESCRIÇÃO <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                            <th class="col-data text-center" onclick="sortTable(5)">VENCIMENTO <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                            <th class="col-valor-original text-right" onclick="sortTable(6)">VALOR <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                            <th class="col-valor" onclick="sortTable(7)">SALDO ATUAL <i class="fas fa-sort ml-1 opacity-30"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="fatura-tbody">
+                        {% for fatura in faturas %}
+                        <tr id="row-{{ fatura.pk }}" style="cursor: pointer;" onclick="selectFatura(this)"
+                            hx-get="{% url 'financeiro:fatura_detail' fatura.pk %}?layout=sidebar" 
+                            hx-target="#sidebar-target-content" hx-trigger="click">
+                            
+                            <td class="col-check text-center" onclick="event.stopPropagation();"><input type="checkbox"></td>
+                            <td class="col-status">
+                                <span class="badge-status status-{{ fatura.status }}">{{ fatura.get_status_display|upper }}</span>
+                            </td>
+                            <td class="col-doc">
+                                <span class="font-weight-bold font-code nowrap">{{ fatura.numero_documento|default:"---" }}</span>
+                            </td>
+                            <td class="col-cliente" title="{{ fatura.cliente.razao_social }}">
+                                <span class="text-dark font-weight-bold nowrap">{{ fatura.cliente.nome_fantasia|default:fatura.cliente.razao_social }}</span>
+                            </td>
+                            <td class="col-desc">
+                                <span class="desc-cell nowrap">{{ fatura.descricao|default:"---" }}</span>
+                            </td>
+                            <td class="col-data text-center">
+                                <span class="data-cell nowrap">{{ fatura.data_vencimento|date:"d/m/Y" }}</span>
+                            </td>
+                            <td class="col-valor-original text-right">
+                                <span class="data-cell nowrap">R$ {{ fatura.valor_original|floatformat:2|intcomma }}</span>
+                            </td>
+                            <td class="col-valor">
+                                <span class="valor-cell text-dark nowrap">R$ {{ fatura.valor_saldo|floatformat:2|intcomma }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="action-sidebar" style="width: 350px; background: white; border-radius: 24px; box-shadow: var(--premium-shadow); border: 1px solid var(--border-subtle);">
+            <div id="sidebar-target-content" class="h-100 d-flex flex-column">
+                <div class="text-center py-5 my-auto text-muted">
+                    <div class="mb-4">
+                        <i class="fas fa-fingerprint fa-4x opacity-20 text-primary"></i>
+                    </div>
+                    <h6 class="font-weight-900 text-dark mb-2">Painel de Ações</h6>
+                    <p class="small">Selecione uma fatura para desbloquear<br>opções de gestão e liquidação.</p>
+                </div>
+            </div>
+        </div>
+    </div>        
+</div>
+
+<script>
+    // Mantendo sua função de ordenação e seleção...
+    function sortTable(n) {
+        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+        table = document.getElementById("tabelaFaturas");
+        switching = true;
+        dir = "asc";
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+                if (dir == "asc") {
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else if (dir == "desc") {
+                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                switchcount ++;
+            } else {
+                if (switchcount == 0 && dir == "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+    }
+
+    function selectFatura(element) {
+        document.querySelectorAll('.table-spreadsheet tbody tr').forEach(r => r.classList.remove('selected'));
+        element.classList.add('selected');
+    }
+
+    document.body.addEventListener('faturaAtualizada', function() {
+        setTimeout(() => {
+            window.location.reload(); 
+        }, 600);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+<div class="modal-header">
+    <h5 class="modal-title" id="movimentacaoModalLabel">
+        Movimentar Estoque: {{ item.produto.nome }}
+    </h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+{# A submissão com hx-post e hx-target="#itemestoque-list-body" fará a atualização da lista #}
+<form 
+    hx-post="{% url 'estoque:movimentacao_create' item_pk=item.pk %}"
+    hx-trigger="submit" 
+    hx-target="#htmx-modal-content" {# Mantém o target no modal para exibir erros se houver falha #}
+    hx-swap="innerHTML" 
+    class="needs-validation" 
+    novalidate
+>
+    {% csrf_token %}
+    
+    <div class="modal-body">
+        
+        <p>
+            <strong>Localização:</strong> {{ item.localizacao|default:"Geral" }} | 
+            <strong>Saldo Atual:</strong> <span class="text-info">{{ item.quantidade }} UN</span>
+        </p>
+        
+        {# Exibe erros gerais do formulário (incluindo erros de validação do modelo como saldo insuficiente) #}
+        {% for error in form.non_field_errors %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endfor %}
+
+        <div class="form-row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.tipo.id_for_label }}">Tipo de Movimentação *</label>
+                {{ form.tipo }}
+                <div class="invalid-feedback">{{ form.tipo.errors }}</div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.quantidade.id_for_label }}">Quantidade *</label>
+                {{ form.quantidade }}
+                <div class="invalid-feedback">{{ form.quantidade.errors }}</div>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="col-md-12 mb-3">
+                <label for="{{ form.observacao.id_for_label }}">Observação/Motivo</label>
+                {{ form.observacao }}
+                <div class="invalid-feedback">{{ form.observacao.errors }}</div>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Registrar Movimentação</button>
+    </div>
+</form>
+
+<script>
+    // Lógica para fechar o modal após a submissão HTMX bem-sucedida
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        // Se a resposta for 204 (status de sucesso sem conteúdo, que usamos para forçar refresh), fechar o modal.
+        if (event.detail.target.id === 'htmx-modal-content' && event.detail.xhr.status === 204) { 
+            $('#htmx-modal').modal('hide');
+        }
+    });
+
+    // Aplica classes Bootstrap e inicializa Select2
+    $('form .form-control, form select, form textarea').addClass('form-control');
+    if (typeof $.fn.select2 !== 'undefined') {
+        $('#id_tipo').select2({ dropdownParent: $('#htmx-modal') });
+    }
+</script>

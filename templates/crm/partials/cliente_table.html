@@ -1,0 +1,44 @@
+{% for cliente in clientes %}
+<tr>
+    <td class="px-4 align-middle">
+        <a href="{% url 'crm:cliente_detail' cliente.pk %}" class="quick-link-premium">
+            {{ cliente.nome_fantasia|default:cliente.razao_social }}
+        </a>
+        {% if cliente.nome_fantasia %}
+            <span class="quick-link-sub">{{ cliente.razao_social }}</span>
+        {% endif %}
+    </td>
+    <td class="align-middle">
+        <span class="text-muted font-monospace">{{ cliente.cnpj_cpf|default:"N/A" }}</span>
+    </td>
+    <td class="align-middle">
+        <span class="text-dark">{{ cliente.cidade|default:"---" }}</span> / <span class="text-muted small">{{ cliente.estado|default:"--" }}</span>
+    </td>
+    <td class="text-center align-middle">
+        <span class="badge badge-pill badge-light border px-2 py-1">
+            <i class="fas fa-address-book text-primary mr-1"></i> {{ cliente.num_contatos }}
+        </span>
+    </td>
+    <td class="text-center align-middle">
+        {% if cliente.bloquear_faturamento %}
+            <span class="badge rounded-pill bg-light text-danger border px-3 py-2">Bloqueado</span>
+        {% else %}
+            <span class="badge rounded-pill bg-light text-success border px-3 py-2">Ativo</span>
+        {% endif %}
+    </td>
+    <td class="text-center align-middle px-4">
+        <div class="btn-group shadow-sm rounded-8 overflow-hidden border">
+            <button class="btn btn-sm btn-white border-0" 
+                    hx-get="{% url 'crm:cliente_update' cliente.pk %}" 
+                    hx-target="#htmx-modal-content"
+                    data-toggle="modal" data-target="#htmx-modal">
+                <i class="fas fa-edit text-primary"></i>
+            </button>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="6" class="text-center py-5 text-muted">Nenhum cliente encontrado com os filtros aplicados.</td>
+</tr>
+{% endfor %}

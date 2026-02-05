@@ -1,0 +1,15 @@
+<div class="modal-header bg-danger text-white border-0">
+    <h5 class="modal-title font-weight-bold"><i class="fas fa-exclamation-triangle mr-2"></i>Confirmar Exclusão</h5>
+    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+</div>
+<div class="modal-body p-4 text-center">
+    <p class="text-muted">{{ mensagem }}</p>
+    <div class="alert alert-warning small border-0">Esta ação não pode ser desfeita.</div>
+</div>
+<div class="modal-footer border-0 bg-light justify-content-center">
+    <button type="button" class="btn btn-secondary rounded-pill px-4" data-dismiss="modal">Cancelar</button>
+    <form hx-post="{{ request.path }}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger rounded-pill px-4 shadow-sm">Confirmar e Excluir</button>
+    </form>
+</div>

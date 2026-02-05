@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Auditoria de Compras{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-xl-12 mb-4">
+        <p class="text-muted">Compara o valor estimado na Requisição com o valor final no Pedido de Compra (PO) para medir a economia obtida pela área de Compras.</p>
+    </div>
+</div>
+
+<div class="row">
+    {# KPI: Total de Economia #}
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Economia/Ganho Total
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ economia_total|intcomma }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# KPI: Valor Total Estimado #}
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Valor Total Estimado (Requisições)
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ total_estimado|intcomma }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calculator fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Detalhamento por Item de Pedido</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>PO</th>
+                        <th>Item</th>
+                        <th>Fornecedor</th>
+                        <th>Vl. Estimado</th>
+                        <th>Vl. Real Negociado</th>
+                        <th>Diferença (R$)</th>
+                        <th>%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in auditoria_data %}
+                    <tr>
+                        <td><a href="{% url 'compras:pedidocompra_detail' item.pedido_compra.pk %}">PO-{{ item.pedido_compra.pk }}</a></td>
+                        <td>{{ item.descricao_item }}</td>
+                        <td>{{ item.pedido_compra.fornecedor.razao_social }}</td>
+                        <td>R$ {{ item.valor_estimado|floatformat:2|intcomma }}</td>
+                        <td>R$ {{ item.valor_real|floatformat:2|intcomma }}</td>
+                        <td class="font-weight-bold {% if item.diferenca >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            R$ {{ item.diferenca|floatformat:2|intcomma }}
+                        </td>
+                        <td>
+                            {% with percent_diff=(item.diferenca / item.valor_estimado) * 100 %}
+                                {% if item.valor_estimado != 0 %}
+                                    {{ percent_diff|floatformat:2 }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">Nenhum dado de auditoria de compra disponível.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/logout_modal.html' %} 
+{% endblock content %}

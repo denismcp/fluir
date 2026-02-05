@@ -1,0 +1,221 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Recibo Oficial | {{ fatura.numero_documento }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        
+        :root {
+            --primary: #4e73df;
+            --dark: #1a1c23;
+            --gray-soft: #f8fafc;
+            --border: #e2e8f0;
+        }
+
+        body { font-family: 'Inter', sans-serif; color: var(--dark); background: #f1f5f9; padding: 40px 20px; line-height: 1.5; font-size: 11px; }
+        
+        .document-canvas { 
+            max-width: 850px; 
+            margin: auto; 
+            background: white; 
+            padding: 50px; 
+            border-radius: 4px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Marca d'água */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 120px;
+            font-weight: 800;
+            color: rgba(0,0,0,0.02);
+            white-space: nowrap;
+            pointer-events: none;
+            text-transform: uppercase;
+        }
+
+        /* Cabeçalho com Logo */
+        .header-institutional { width: 100%; border-bottom: 3px solid var(--primary); padding-bottom: 20px; margin-bottom: 30px; }
+        .logo-img { height: 60px; object-fit: contain; }
+        .company-subtitle { font-size: 12px; font-weight: 700; color: #64748b; margin-top: 8px; text-transform: uppercase; }
+        .company-meta { text-align: right; font-size: 9px; color: #64748b; line-height: 1.5; }
+
+        .receipt-badge { 
+            display: inline-block; 
+            background: var(--dark); 
+            color: white; 
+            padding: 8px 25px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            margin-bottom: 30px;
+        }
+
+        .statement { font-size: 14px; margin-bottom: 40px; text-align: justify; }
+        .statement strong { font-weight: 700; color: var(--dark); }
+
+        .premium-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .premium-table thead th { 
+            background: var(--gray-soft); 
+            color: #64748b; 
+            text-align: left; 
+            padding: 12px; 
+            font-weight: 700; 
+            font-size: 9px; 
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+        }
+        .premium-table tbody td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 11px; }
+        
+        .section-tag { font-weight: 800; font-size: 10px; color: var(--primary); margin-bottom: 10px; text-transform: uppercase; }
+
+        /* Área de Observações */
+        .obs-container {
+            margin-top: 20px;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #fffcf0; /* Tom palha bem leve para destaque */
+            border-left: 4px solid #f6e05e;
+            border-radius: 4px;
+        }
+        .obs-title { font-weight: 800; font-size: 10px; color: #744210; text-transform: uppercase; margin-bottom: 5px; }
+        .obs-content { font-size: 11px; color: #744210; font-style: italic; }
+
+        .total-highlight { 
+            background: var(--gray-soft); 
+            padding: 20px; 
+            text-align: right; 
+            border-radius: 8px; 
+            border: 1px solid var(--border);
+        }
+        .total-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        .total-value { font-size: 24px; font-weight: 800; color: var(--primary); }
+
+        .document-footer { margin-top: 60px; }
+        .signature-container { display: flex; justify-content: space-between; gap: 60px; margin-top: 50px; }
+        .sig-box { flex: 1; text-align: center; }
+        .sig-line { border-top: 1.5px solid var(--dark); padding-top: 8px; font-weight: 700; text-transform: uppercase; font-size: 10px; }
+
+        .system-stamp { margin-top: 60px; text-align: center; font-size: 9px; color: #94a3b8; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .document-canvas { box-shadow: none; padding: 0; }
+            .no-print { display: none; }
+            .obs-container { background: transparent; border: 1px solid var(--border); border-left: 4px solid #f6e05e; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="text-align: center; margin-bottom: 30px;">
+        <button onclick="window.print()" style="background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 50px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px rgba(78,115,223,0.3);">
+            🖨️ IMPRIMIR RECIBO CORPORATIVO
+        </button>
+    </div>
+
+    <div class="document-canvas">
+        <div class="watermark">ORIGINAL</div>
+
+        <table class="header-institutional">
+            <tr>
+                <td style="vertical-align: top;">
+                    <img src="{% static 'img/logohorizontal.jpg' %}" class="logo-img" alt="Logo TC">
+                    <div class="company-subtitle">FLUIR TECNOLOGIA E TREINAMENTO LTDA</div>
+                </td>
+                <td class="company-meta">
+                    <strong>CNPJ:</strong> 51.451.498/0001-40<br>
+                    <strong>IE:</strong> 124.497.918.113 | <strong>IM:</strong> 338580<br>
+                    INDUSTRIAL, 1680 - SALA 1607 - CAMPESTRE<br>
+                    Santo André - SP | CEP: 09080-501 | (11) 4990-5445
+                </td>
+            </tr>
+        </table>
+
+        <div class="receipt-badge">Recibo de Pagamento</div>
+
+        <div class="statement">
+            Declaramos que recebemos de <strong>{{ fatura.cliente.razao_social }}</strong>, 
+            inscrito(a) no CNPJ/CPF <strong>{{ fatura.cliente.cnpj_cpf|default:"---" }}</strong>, 
+            a importância de <strong>R$ {{ fatura.valor_original|floatformat:2|intcomma }}</strong> 
+            referente aos títulos abaixo discriminados.
+        </div>
+
+        <div class="section-tag">Dados do Documento</div>
+        <table class="premium-table">
+            <thead>
+                <tr>
+                    <th>NF / Doc</th>
+                    <th>Referência</th>
+                    <th>Documento Base</th>
+                    <th>Parcela</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="font-weight: 700;">{{ fatura.numero_documento|default:"---" }}</td>
+                    <td>CONTRATO {{ fatura.contrato.codigo|default:"PADRÃO" }}</td>
+                    <td>RPS-{{ fatura.numero_documento|default:"EXT" }}</td>
+                    <td>01/01</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="section-tag">Pagamentos Reconhecidos</div>
+        <table class="premium-table">
+            <thead>
+                <tr>
+                    <th>Data Liquidação</th>
+                    <th>Bruto</th>
+                    <th>Descontos</th>
+                    <th>Juros/Multa</th>
+                    <th style="text-align: right;">Total Pago</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ fatura.data_liquidacao|date:"d/m/Y"|default:hoje|date:"d/m/Y" }}</td>
+                    <td>R$ {{ fatura.valor_original|floatformat:2|intcomma }}</td>
+                    <td>R$ 0,00</td>
+                    <td>R$ 0,00</td>
+                    <td style="text-align: right; font-weight: 800;">R$ {{ fatura.valor_original|floatformat:2|intcomma }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="obs-container">
+            <div class="obs-title">Observações Adicionais</div>
+            <div class="obs-content">
+                {{ fatura.observacoes|default:"Nenhuma observação adicional registrada para este título." }}
+            </div>
+        </div>
+
+        <div class="total-highlight">
+            <span class="total-label">Total Pago:</span><br>
+            <span class="total-value">R$ {{ fatura.valor_original|floatformat:2|intcomma }}</span>
+        </div>
+
+        <div class="document-footer">
+            <p style="font-weight: 800; font-size: 13px; margin-bottom: 50px;">Santo André (SP), {{ hoje|date:"d" }} de {{ hoje|date:"F" }} de {{ hoje|date:"Y" }}.</p>
+            
+            <div class="signature-container">
+                <div class="sig-box">
+                    <div class="sig-line">NOME LEGÍVEL</div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-line">ASSINATURA / CARIMBO</div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</body>
+</html>

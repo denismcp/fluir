@@ -1,0 +1,119 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-dark text-white border-0">
+    <h5 class="modal-title font-weight-bold">
+        <i class="fas fa-shield-alt mr-2 text-warning"></i>
+        {% if form.instance.pk %}Editar Perfil{% else %}Novo Perfil de Acesso{% endif %}
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+</div>
+
+<form hx-post="{{ request.path }}" hx-target="#htmx-modal-content">
+    {% csrf_token %}
+    <div class="modal-body p-4 bg-light">
+        
+        <div class="card shadow-sm border-0 mb-4 rounded-15">
+            <div class="card-body p-4">
+                {{ form.nome|as_crispy_field }}
+                {{ form.descricao|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 rounded-15">
+            <div class="card-body p-4">
+                <h6 class="text-primary font-weight-bold mb-4 small text-uppercase">
+                    <i class="fas fa-cubes mr-2"></i>Módulos Completos
+                </h6>
+                
+                <div class="row mb-4">
+                    {% regroup permissoes_erp by app_nome_limpo as app_list %}
+                    {% for app in app_list %}
+                    <div class="col-md-4 mb-3">
+                        <div class="p-2 border rounded-12 bg-white d-flex align-items-center justify-content-between">
+                            <span class="small font-weight-bold ml-2">{{ app.grouper }}</span>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input module-selector" 
+                                       id="switch_{{ app.grouper }}" data-app-group="{{ app.grouper }}">
+                                <label class="custom-control-label" for="switch_{{ app.grouper }}"></label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <hr>
+
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="text-muted font-weight-bold small text-uppercase mb-0">Atributos Detalhados</h6>
+                    <div class="input-group input-group-sm w-50">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                        </div>
+                        <input type="text" id="filterPermissions" class="form-control border-left-0" placeholder="Filtrar recurso...">
+                    </div>
+                </div>
+
+                <div class="permission-list-scroll border rounded-12 p-3 bg-white" style="max-height: 250px; overflow-y: auto;">
+                    {% for p in permissoes_erp %}
+                    <div class="custom-control custom-checkbox mb-2 perm-item" 
+                        data-app-group="{{ p.app_nome_limpo }}" 
+                        data-searchable="{{ p.model }} {{ p.name }}">
+                        
+                        <input type="checkbox" name="permissoes" value="{{ p.id }}" 
+                            class="custom-control-input perm-checkbox" id="perm_{{ p.id }}"
+                            {% if p.is_selected %}checked{% endif %}>
+                        
+                        <label class="custom-control-label small" for="perm_{{ p.id }}">
+                            <span class="text-primary font-weight-bold">{{ p.model }}</span> | {{ p.name }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer bg-light border-0 px-4 pb-4">
+        <button type="button" class="btn btn-link text-muted font-weight-bold" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary px-5 shadow-sm rounded-pill font-weight-bold">
+            <i class="fas fa-save mr-2"></i>Salvar Alterações
+        </button>
+    </div>
+</form>
+
+<script>
+    $(document).ready(function() {
+        // Filtro de pesquisa em tempo real
+        $('#filterPermissions').on('keyup', function() {
+            var value = $(this).val().toLowerCase();
+            $(".perm-item").filter(function() {
+                $(this).toggle($(this).data('searchable').toLowerCase().indexOf(value) > -1)
+            });
+        });
+
+        // Lógica para ligar os Switches de Módulo se houver itens marcados ao abrir a modal
+        $('.module-selector').each(function() {
+            var group = $(this).data('app-group');
+            var totalInGroup = $('.perm-item[data-app-group="' + group + '"]').length;
+            var checkedInGroup = $('.perm-item[data-app-group="' + group + '"] .perm-checkbox:checked').length;
+            
+            if (checkedInGroup > 0 && checkedInGroup === totalInGroup) {
+                $(this).prop('checked', true);
+            }
+        });
+
+        // Clique no Switch de Módulo (Marca/Desmarca todos do grupo)
+        $('.module-selector').on('change', function() {
+            var group = $(this).data('app-group');
+            var isChecked = $(this).is(':checked');
+            $('.perm-item[data-app-group="' + group + '"] .perm-checkbox').prop('checked', isChecked);
+        });
+    });
+</script>
+
+<style>
+    .rounded-12 { border-radius: 12px !important; }
+    .rounded-15 { border-radius: 15px !important; }
+    .permission-list-scroll::-webkit-scrollbar { width: 6px; }
+    .permission-list-scroll::-webkit-scrollbar-thumb { background: #e3e6f0; border-radius: 10px; }
+</style>

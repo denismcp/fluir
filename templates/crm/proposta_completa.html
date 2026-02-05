@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+{% load static %}
+{% load humanize %}
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: A4; margin: 0; }
+        
+        /* Configuração de Rodapé Fixo para páginas de conteúdo */
+        @page content_page {
+            margin: 2cm 1.5cm 2.5cm 1.5cm;
+            @bottom-center { content: element(footer); }
+        }
+
+        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; margin: 0; padding: 0; }
+
+        /* Capa - Ajuste de Imagem e Espaçamento */
+        .page-marketing { width: 21cm; height: 29.7cm; position: relative; page-break-after: always; overflow: hidden; }
+        
+        .img-capa-container {
+            width: 100%;
+            height: 15cm; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+        }
+        .img-capa {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .img-background { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; object-fit: fill; }
+
+        /* Rodapé Fixo */
+        #page-footer {
+            position: running(footer);
+            font-size: 7.5pt;
+            color: #777;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 8px;
+        }
+
+        /* Conteúdo da Capa */
+        .cover-content { 
+            width: 100%; 
+            text-align: center; 
+            color: #000; 
+            margin-top: 2.5cm; 
+        }
+        .title-proposta { font-size: 28pt; font-weight: bold; text-transform: uppercase; margin: 0; }
+        .subtitle-proposta { font-size: 18pt; margin: 5px 0 20px 0; color: #444; }
+        
+        .client-box { 
+            margin: 1cm auto 0 auto; 
+            width: 85%; 
+            word-wrap: break-word; 
+            overflow-wrap: break-word;
+        }
+        .client-name-text {
+            display: block; 
+            font-size: 18pt; 
+            font-weight: bold;
+            line-height: 1.2;
+        }
+        
+        .info-proposta-capa { font-size: 11pt; color: #666; margin-top: 10px; line-height: 1.6; }
+        .logo-bottom-right { position: absolute; bottom: 1cm; right: 1cm; height: 50px; }
+        .year-tag-cover { position: absolute; top: 1cm; right: 1.5cm; font-size: 18pt; font-weight: bold; }
+
+        /* Seções Dinâmicas */
+        .dynamic-section { page: content_page; page-break-after: always; position: relative; }
+        .session-header { display: block; border-bottom: 2px solid #0d2d5e; padding-bottom: 10px; margin-bottom: 20px; }
+        .session-header img { height: 40px; }
+        .section-title { border-left: 5px solid #0d2d5e; padding-left: 15px; color: #0d2d5e; font-size: 16pt; font-weight: bold; text-transform: uppercase; margin-bottom: 20px; }
+        
+        /* Tabelas e Totais Profissionais */
+        .invest-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #0d2d5e; }
+        .invest-table thead th { background-color: #0d2d5e; color: #fff; padding: 10px; text-align: left; font-size: 9pt; }
+        .invest-table td { border: 1px solid #eee; padding: 8px; font-size: 9pt; }
+        
+        .total-container { border: 1px solid #0d2d5e; border-top: none; background-color: #fff; }
+        .value-line { 
+            text-align: right; 
+            padding: 8px 12px; 
+            font-size: 9pt; 
+            border-bottom: 1px solid #eee; 
+            color: #555; 
+        }
+        .discount-text { color: #dc3545 !important; }
+        .total-box { 
+            background-color: #0d2d5e; 
+            color: white; 
+            font-weight: bold; 
+            font-size: 12pt; 
+            text-align: right; 
+            padding: 12px; 
+        }
+
+        .signature-table { width: 100%; margin-top: 2.5cm; border-collapse: collapse; }
+        .signature-table td { border-top: 1px solid #333; padding: 45px 5px 10px 5px; font-size: 8pt; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="page-footer">
+        Gerado em {{ generation_time|date:"d/m/Y" }} às {{ generation_time|date:"H:i" }} por 
+        {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
+    </div>
+
+    <div class="page-marketing">
+        <div class="img-capa-container">
+            <img src="{% static 'img/Capa.png' %}" class="img-capa">
+        </div>
+        <div class="year-tag-cover">{{ generation_time|date:"Y" }}</div>
+        <div class="cover-content">
+            <h1 class="title-proposta">PROPOSTA COMERCIAL</h1>
+            <h2 class="subtitle-proposta">{{ opportunity.nome }}</h2>
+            <div class="client-box">
+                <strong class="client-name-text">
+                    {{ opportunity.cliente.nome_fantasia|default:opportunity.cliente.razao_social|upper }}
+                </strong>
+                {% if opportunity.contato_principal %}
+                    <span style="font-size: 13pt;">A/C: {{ opportunity.contato_principal.primeiro_nome }} {{ opportunity.contato_principal.sobrenome }}</span>
+                {% endif %}
+            </div>
+            <div class="info-proposta-capa">
+                <strong>PROPOSTA Nº {{ proposal.id_proposta }} | DATA: {{ proposal.data_criacao|date:"d/m/Y" }}</strong><br>
+                <span style="letter-spacing: 2px;">TCDOBRASIL.COM.BR</span>
+            </div>
+        </div>
+        <img src="{% static 'img/logo.png' %}" class="logo-bottom-right">
+    </div>
+
+    <div class="page-marketing"><img src="{% static 'img/page_marketing_01.png' %}" class="img-background"></div>
+    <div class="page-marketing"><img src="{% static 'img/page_marketing_02.png' %}" class="img-background"></div>
+    <div class="page-marketing"><img src="{% static 'img/page_marketing_03.png' %}" class="img-background"></div>
+    <div class="page-marketing"><img src="{% static 'img/page_marketing_04.png' %}" class="img-background"></div>
+
+    <div class="dynamic-section">
+        <div class="session-header"><img src="{% static 'img/logo.png' %}"></div>
+        <div class="section-title">ENTENDIMENTO DA NECESSIDADE</div>
+        <div style="text-align: justify; font-size: 11pt;">{{ proposal.entendimento_necessidade|linebreaks }}</div>
+    </div>
+
+    <div class="dynamic-section">
+        <div class="session-header"><img src="{% static 'img/logo.png' %}"></div>
+        <div class="section-title">PROPOSTA TÉCNICA</div>
+        <div style="text-align: justify; font-size: 11pt;">{{ proposal.descricao_tecnica|linebreaks }}</div>
+    </div>
+
+    <div class="dynamic-section">
+        <div class="session-header">
+            <img src="{% static 'img/logo.png' %}">
+            <span style="float: right; color: #0d2d5e; font-weight: bold;">Nº {{ proposal.id_proposta }}</span>
+        </div>
+        <div class="section-title">PROPOSTA COMERCIAL</div>
+
+        {# CONTEÚDO DA DESCRIÇÃO COMERCIAL ADICIONADO AQUI #}
+        {% if proposal.descricao_comercial %}
+        <div style="text-align: justify; font-size: 11pt; margin-bottom: 20px;">
+            {{ proposal.descricao_comercial|linebreaks }}
+        </div>
+        {% endif %}
+        
+        <table class="invest-table" style="margin-bottom: 0; border-bottom: none;">
+            <thead>
+                <tr>
+                    <th>DESCRIÇÃO DO PRODUTO OU SERVIÇO</th>
+                    <th style="width: 50px; text-align: center;">QTDE</th>
+                    <th style="width: 100px; text-align: right;">UNIT. (R$)</th>
+                    <th style="width: 120px; text-align: right;">TOTAL (R$)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <strong>{% if item.resumo_item %}{{ item.resumo_item }}{% elif item.produto %}{{ item.produto.nome }}{% else %}{{ item.servico.nome }}{% endif %}</strong>
+                        {% if item.especificacao_tecnica %}<br><small>{{ item.especificacao_tecnica }}</small>{% endif %}
+                    </td>
+                    <td style="text-align: center;">{{ item.quantidade }}</td>
+                    <td style="text-align: right;">{{ item.preco_unitario|floatformat:2|intcomma }}</td>
+                    <td style="text-align: right;">{{ item.total|floatformat:2|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="total-container">
+            {% if proposal.valor_frete > 0 %}
+            <div class="value-line">
+                <span style="margin-right: 15px;">(+) VALOR DO FRETE:</span>
+                <strong style="display: inline-block; width: 120px;">R$ {{ proposal.valor_frete|floatformat:2|intcomma }}</strong>
+            </div>
+            {% endif %}
+
+            {% if proposal.valor_desconto > 0 %}
+            <div class="value-line discount-text">
+                <span style="margin-right: 15px;">(-) DESCONTO CONCEDIDO:</span>
+                <strong style="display: inline-block; width: 120px;">R$ {{ proposal.valor_desconto|floatformat:2|intcomma }}</strong>
+            </div>
+            {% endif %}
+
+            <div class="total-box">
+                <span style="font-size: 10pt; text-transform: uppercase; margin-right: 15px; opacity: 0.9;">Valor Total da Proposta:</span>
+                <strong style="display: inline-block; width: 120px;">R$ {{ proposal.valor_total|floatformat:2|intcomma }}</strong>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; border: 1px solid #ddd; padding: 15px; background: #fcfcfc; border-left: 5px solid #0d2d5e;">
+            <strong>PRAZO E CONDIÇÕES DE PAGAMENTO:</strong><br>
+            • Entrega: {{ proposal.prazo_entrega|default:"A combinar" }} | Validade: {{ proposal.validade_dias|default:"05" }} Dias<br>
+            • Pagamento: {{ proposal.forma_pagamento|default:"Conforme contrato" }}
+        </div>
+
+        <table class="signature-table">
+            <tr>
+                <td>Data: ____/____/_____</td>
+                <td>Documento: ______________</td>
+                <td>Nome: ___________________</td>
+                <td>Assinatura: ______________</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="page-marketing"><img src="{% static 'img/page_marketing_05.png' %}" class="img-background"></div>
+</body>
+</html>

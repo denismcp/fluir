@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Catálogo de Produtos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card shadow mb-4">
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-boxes mr-2"></i>Catálogo de Produtos</h1>   
+                    
+                    <div class="d-flex align-items-center">
+                        <div class="btn-group btn-group-sm mr-3 shadow-sm">
+                            <a href="?status=todos" class="btn btn-secondary {% if current_status == 'todos' %}active{% endif %}">
+                                Todos <span class="badge badge-light ml-1">{{ total_todos }}</span>
+                            </a>
+                            <a href="?status=ativos" class="btn btn-success {% if current_status == 'ativos' %}active{% endif %}">
+                                Ativos <span class="badge badge-light ml-1">{{ total_ativos }}</span>
+                            </a>
+                            <a href="?status=inativos" class="btn btn-danger {% if current_status == 'inativos' %}active{% endif %}">
+                                Inativos <span class="badge badge-light ml-1">{{ total_inativos }}</span>
+                            </a>
+                        </div>
+
+                        <div class="btn-group shadow-sm">
+                            <a href="{% url 'produtos:produto_import' %}" class="btn btn-info btn-sm">
+                                <i class="fas fa-file-import fa-sm mr-1"></i> Importar
+                            </a>
+                            <button class="btn btn-primary btn-sm" 
+                                    hx-get="{% url 'produtos:produto_create' %}" 
+                                    hx-target="#htmx-modal-content" 
+                                    data-toggle="modal" data-target="#htmx-modal">
+                                <i class="fas fa-plus fa-sm mr-1"></i> Novo Produto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm" id="dataTable" width="100%" cellspacing="0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Cód. Interno</th>
+                                    <th>Nome do Produto</th>
+                                    <th>Categoria</th>
+                                    <th>Preço Venda</th>
+                                    <th>Status</th>
+                                    <th>Responsável</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for produto in produtos %}
+                                <tr>
+                                    <td class="align-middle"><code>{{ produto.codigo_interno|default:"---" }}</code></td>
+                                    <td class="align-middle font-weight-bold text-dark">{{ produto.nome }}</td>
+                                    <td class="align-middle">
+                                        <span class="badge badge-light border">
+                                            {{ produto.categoria.nome|default:"Sem Categoria" }}
+                                        </span>
+                                    </td>
+                                    <td class="align-middle">R$ {{ produto.preco_venda_padrao|default:"0,00" }}</td>
+                                    <td class="align-middle text-center">
+                                        {% if produto.ativo %}
+                                            <span class="badge badge-success">Ativo</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Inativo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle">
+                                        <div class="small">
+                                            {% if produto.modificado_por %}
+                                                <span class="text-info" title="Última alteração">
+                                                    <i class="fas fa-edit mr-1"></i>{{ produto.modificado_por.username }}
+                                                </span>
+                                            {% elif produto.criado_por %}
+                                                <span class="text-muted" title="Criado por">
+                                                    <i class="fas fa-user-plus mr-1"></i>{{ produto.criado_por.username }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-gray-400">---</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <div class="btn-group">
+                                            <a href="{% url 'produtos:produto_detail' produto.pk %}" class="btn btn-light btn-sm border">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'produtos:produto_update' produto.pk %}" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn btn-danger btn-sm" 
+                                                    hx-get="{% url 'produtos:produto_delete' produto.pk %}" 
+                                                    hx-target="#htmx-modal-content" 
+                                                    data-toggle="modal" 
+                                                    data-target="#htmx-modal">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        <i class="fas fa-info-circle mr-1"></i> Nenhum produto encontrado.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-tools mr-2"></i>Catálogo de Serviços</h1>
+    
+    <div class="d-flex align-items-center">
+        <div class="btn-group btn-group-sm mr-3 shadow-sm">
+            <a href="?status=todos" class="btn btn-secondary {% if current_status == 'todos' %}active{% endif %}">
+                Todos <span class="badge badge-light ml-1">{{ total_todos }}</span>
+            </a>
+            <a href="?status=ativos" class="btn btn-success {% if current_status == 'ativos' %}active{% endif %}">
+                Ativos <span class="badge badge-light ml-1">{{ total_ativos }}</span>
+            </a>
+            <a href="?status=inativos" class="btn btn-danger {% if current_status == 'inativos' %}active{% endif %}">
+                Inativos <span class="badge badge-light ml-1">{{ total_inativos }}</span>
+            </a>
+        </div>
+
+        <div class="btn-group shadow-sm">
+            <a href="{% url 'produtos:servico_import' %}" class="btn btn-info btn-sm">
+                <i class="fas fa-file-import fa-sm mr-1"></i> Importar
+            </a>
+            <button class="btn btn-primary btn-sm" 
+                    hx-get="{% url 'produtos:servico_create' %}" 
+                    hx-target="#htmx-modal-content" 
+                    data-toggle=\"modal\" data-target=\"#htmx-modal\">
+                <i class=\"fas fa-plus fa-sm mr-1\"></i> Novo Serviço
+            </button>
+        </div>
+    </div>
+</div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Serviços Ativos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Descrição do Serviço</th>
+                            <th>Categoria</th>
+                            <th class="text-right">Preço de Venda</th>
+                            <th class="text-center">Garantia (Dias)</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for servico in servicos %}
+                        <tr>
+                            <td>{{ servico.codigo_interno }}</td>
+                            <td>{{ servico.nome }}</td>
+                            <td>{{ servico.categoria.nome|default:"---" }}</td>
+                            <td class="text-right">R$ {{ servico.preco_venda_padrao|floatformat:2 }}</td>
+                            <td class="text-center">{{ servico.dias_garantia }}</td>
+                            <td class="text-center">
+                                <div class="btn-group">
+                                    <button class="btn btn-warning btn-sm" 
+                                            hx-get="{% url 'produtos:produto_update' servico.pk %}"
+                                            hx-target="#htmx-modal-content"
+                                            data-toggle="modal" data-target="#htmx-modal">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-sm ml-1" 
+                                            hx-get="{% url 'produtos:produto_delete' servico.pk %}"
+                                            hx-target="#htmx-modal-content"
+                                            data-toggle="modal" data-target="#htmx-modal">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">Nenhum serviço cadastrado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

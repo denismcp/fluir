@@ -1,0 +1,96 @@
+<div class="modal-header">
+    <h5 class="modal-title" id="servicoModalLabel">
+        {% if form.instance.pk %}Editar Serviço: {{ form.instance.nome }}{% else %}Novo Serviço{% endif %}
+    </h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form 
+    hx-post="{% if form.instance.pk %}{% url 'servicos:servico_update' form.instance.pk %}{% else %}{% url 'servicos:servico_create' %}{% endif %}" 
+    hx-trigger="submit" 
+    hx-target="#servico-list-body" 
+    hx-swap="outerHTML" 
+    class="needs-validation" 
+    novalidate
+>
+    {% csrf_token %}
+    
+    <div class="modal-body">
+        
+        {# Renderiza os campos ajustados para o layout do SB Admin 2 #}
+        <div class="form-row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.nome.id_for_label }}">Nome do Serviço *</label>
+                {{ form.nome }}
+                <div class="invalid-feedback">{{ form.nome.errors }}</div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.codigo_servico.id_for_label }}">Código do Serviço</label>
+                {{ form.codigo_servico }}
+                <div class="invalid-feedback">{{ form.codigo_servico.errors }}</div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="col-md-4 mb-3">
+                <label for="{{ form.categoria.id_for_label }}">Categoria</label>
+                {{ form.categoria }}
+                <div class="invalid-feedback">{{ form.categoria.errors }}</div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="{{ form.tipo_servico.id_for_label }}">Tipo de Serviço</label>
+                {{ form.tipo_servico }}
+                <div class="invalid-feedback">{{ form.tipo_servico.errors }}</div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="{{ form.unidade_medida.id_for_label }}">Unidade de Medida</label>
+                {{ form.unidade_medida }}
+                <div class="invalid-feedback">{{ form.unidade_medida.errors }}</div>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="col-md-12 mb-3">
+                <label for="{{ form.preco_unitario_padrao.id_for_label }}">Preço Unitário Padrão (R$)</label>
+                {{ form.preco_unitario_padrao }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="col-md-12 mb-3">
+                <label for="{{ form.descricao_curta.id_for_label }}">Descrição Curta (para Propostas)</label>
+                {{ form.descricao_curta }}
+            </div>
+        </div>
+        
+        {# Campos Ocultos e Erros de Não-Campo #}
+        {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+        {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar Serviço</button>
+    </div>
+</form>
+
+<script>
+    // Lógica para fechar o modal após a submissão HTMX bem-sucedida e re-inicializar scripts
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        if (event.detail.target.id === 'servico-list-body') { 
+            $('#htmx-modal').modal('hide');
+        }
+    });
+
+    // Adiciona classes Bootstrap a campos de formulário para estilização correta
+    $('form .form-control, form select, form textarea').addClass('form-control');
+    
+    // Inicializa Select2
+    if (typeof $.fn.select2 !== 'undefined') {
+        $('#id_categoria').select2({ dropdownParent: $('#htmx-modal') });
+        $('#id_tipo_servico').select2({ dropdownParent: $('#htmx-modal') });
+    }
+</script>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+{% load static %}
+{% load humanize %}
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 0; /* Capa sem margem */
+        }
+        body {
+            font-family: 'Helvetica', Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+        /* --- CAPA --- */
+        .cover {
+            height: 29.7cm;
+            background-color: #0d2d5e;
+            color: white;
+            text-align: center;
+            padding-top: 5cm;
+        }
+        .cover-logo { width: 300px; margin-bottom: 2cm; }
+        .cover-title { font-size: 28pt; font-weight: bold; margin-bottom: 0.5cm; text-transform: uppercase; }
+        .cover-subtitle { font-size: 18pt; margin-bottom: 4cm; color: #aab; }
+        .cover-client { font-size: 14pt; margin-top: 2cm; }
+        .cover-info { position: absolute; bottom: 2cm; width: 100%; font-size: 12pt; }
+
+        /* --- PÁGINAS DE CONTEÚDO --- */
+        .page {
+            padding: 2cm;
+            page-break-before: always;
+            height: 25.7cm;
+            position: relative;
+        }
+        .header {
+            border-bottom: 2px solid #0d2d5e;
+            margin-bottom: 1cm;
+            display: flex;
+            justify-content: space-between;
+        }
+        .header img { height: 40px; }
+        
+        h2 { color: #0d2d5e; border-left: 5px solid #ffc107; padding-left: 15px; text-transform: uppercase; font-size: 16pt; margin-top: 1.5cm; }
+        
+        .values-grid { display: block; margin: 1cm 0; }
+        .value-item { display: inline-block; width: 30%; font-weight: bold; color: #0d2d5e; text-align: center; margin-bottom: 10px; }
+
+        .table-itens { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .table-itens th { background-color: #0d2d5e; color: white; padding: 10px; text-align: left; }
+        .table-itens td { padding: 10px; border-bottom: 1px solid #eee; }
+        
+        .footer-address { position: absolute; bottom: 1cm; width: 80%; font-size: 8pt; color: #777; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; margin-left: 10%; }
+    </style>
+</head>
+<body>
+
+    <div class="cover">
+        <img src="{% static 'img/logo.png' %}" class="cover-logo">
+        <div class="cover-title">Proposta Comercial</div>
+        <div class="cover-subtitle">{{ opportunity.nome }}</div>
+        
+        <div class="cover-client">
+            A/C: <strong>{{ opportunity.cliente.razao_social }}</strong>
+        </div>
+
+        <div class="cover-info">
+            PROPOSTA Nº: {{ proposals.0.id|stringformat:"04d" }}<br>
+            DATA: {{ proposals.0.data_criacao|date:"d/m/Y" }}
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="header">
+            <img src="{% static 'img/logo.png' %}">
+            <span style="color:#777">GRUPO TC DO BRASIL</span>
+        </div>
+
+        <h2>Quem Somos</h2>
+        <p>O Grupo TC do Brasil a mais de 17 anos atua como integradora e provedora de serviços de TI. Acreditamos que com nossa Visão em Tecnologia podemos inovar os conceitos e os processos de nossos clientes.</p>
+        <p>Temos como foco o atendimento ao mercado corporativo e grandes integradores, com estrutura de atendimento e monitoramento 24 horas por dia e 07 dias por semana, respeitando os níveis de serviço (SLA) acordados.</p>
+
+        <h2>Nossos Valores</h2>
+        <div class="values-grid">
+            <div class="value-item">PARCERIA</div>
+            <div class="value-item">INTELIGÊNCIA</div>
+            <div class="value-item">HONESTIDADE</div>
+            <div class="value-item">PRÓ-ATIVIDADE</div>
+            <div class="value-item">TRANSPARÊNCIA</div>
+            <div class="value-item">COMPROMETIMENTO</div>
+        </div>
+        
+        <p style="text-align: center; font-style: italic; margin-top: 1cm;">
+            "Buscamos sermos sempre reconhecidos como o melhor dos fornecedores de nossos clientes."
+        </p>
+
+        <div class="footer-address">
+            Unidade ABC - MATRIZ: Rua Gertrudes de Lima, 53 – 7º Andar - Santo André – SP<br>
+            Unidade Paulista: Avenida Paulista 2421 - 1º andar - Bela Vista - São Paulo
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="header">
+            <img src="{% static 'img/logo.png' %}">
+            <span>PROPOSTA Nº {{ proposals.0.id|stringformat:"04d" }}</span>
+        </div>
+
+        <h2>Descrição da Solução</h2>
+        <p>{{ proposals.0.descricao_comercial|default:"Conforme alinhado em reunião, apresentamos abaixo o detalhamento financeiro para o projeto solicitado." }}</p>
+
+        <h2>Investimento</h2>
+        <table class="table-itens">
+            <thead>
+                <tr>
+                    <th>Item / Descrição</th>
+                    <th style="text-align: center;">Qtd</th>
+                    <th style="text-align: right;">Total (R$)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in proposals.0.itens.all %}
+                <tr>
+                    <td>
+                        <strong>{{ item.resumo_item|default:item.produto.nome }}</strong><br>
+                        <small>{{ item.especificacao_tecnica|default:"" }}</small>
+                    </td>
+                    <td style="text-align: center;">{{ item.quantidade }}</td>
+                    <td style="text-align: right;">{{ item.total|floatformat:2|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2" style="text-align: right; font-weight: bold; padding-top: 20px;">VALOR TOTAL DO INVESTIMENTO:</td>
+                    <td style="text-align: right; font-weight: bold; font-size: 14pt; color: #0d2d5e; padding-top: 20px;">
+                        R$ {{ proposals.0.valor_total|floatformat:2|intcomma }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="footer-address">
+            {{ user.get_full_name }} - {{ user.email }}<br>
+            Grupo TC do Brasil - Visão em Tecnologia
+        </div>
+    </div>
+
+</body>
+</html>

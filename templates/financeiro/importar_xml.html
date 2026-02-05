@@ -1,0 +1,42 @@
+<style>
+    .upload-zone { 
+        border: 2px dashed #e2e8f0; 
+        border-radius: 1.5rem; 
+        background: #f8fafc; 
+        transition: 0.3s; 
+        cursor: pointer;
+        padding: 3rem;
+    }
+    .upload-zone:hover { border-color: #6366f1; background: #f1f5f9; }
+    .upload-icon { font-size: 3rem; color: #6366f1; opacity: 0.5; margin-bottom: 1.5rem; }
+</style>
+
+<div class=\"modal-header border-0 bg-premium-modal text-white\">
+    <h5 class=\"modal-title font-weight-bold\"><i class=\"fas fa-file-import mr-2\"></i>Importar Nota Fiscal (XML)</h5>
+    <button type=\"button\" class=\"close text-white\" data-dismiss=\"modal\"><span>×</span></button>
+</div>
+
+<div class=\"modal-body bg-white p-5\">
+    <form hx-post=\"{% url 'financeiro:importar_xml' %}\" 
+          hx-encoding=\"multipart/form-data\" 
+          hx-target=\"#import-result\">
+        {% csrf_token %}
+        
+        <div class=\"upload-zone text-center\" onclick=\"document.getElementById('xml_input').click()\">
+            <input type=\"file\" name=\"xml_file\" id=\"xml_input\" class=\"d-none\" accept=\".xml\" required>
+            <div class=\"upload-icon\"><i class=\"fas fa-cloud-upload-alt\"></i></div>
+            <h5 class=\"font-weight-bold text-dark\">Clique ou arraste o arquivo .XML</h5>
+            <p class=\"text-muted small\">O sistema identificará o fornecedor, valor e vencimento automaticamente.</p>
+        </div>
+
+        <div id=\"import-result\" class=\"mt-4\">
+            </div>
+
+        <div class=\"mt-4 text-right\">
+            <button type=\"button\" class=\"btn btn-link text-muted\" data-dismiss=\"modal\">Cancelar</button>
+            <button type=\"submit\" class=\"btn btn-primary px-5 shadow-lg font-weight-bold rounded-pill\">
+                Processar Nota Fiscal
+            </button>
+        </div>
+    </form>
+</div>

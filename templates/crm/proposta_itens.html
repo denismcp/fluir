@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Itens da Proposta: {{ proposta.id_proposta }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .detail-card { border: none; border-radius: 15px; box-shadow: 0 0 2rem 0 rgba(136, 152, 170, .15); }
+    .bg-gradient-info { background: linear-gradient(135deg, #11cdef 0, #1171ef 100%) !important; }
+    .table-clean thead th { background-color: #f8f9fc; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; color: #8898aa; border: none; }
+    .item-row:hover { background-color: #f6f9fc; transition: 0.3s; }
+    .input-edit { border: 1px solid #e9ecef; border-radius: 4px; background: #fff; font-weight: 600; padding: 2px 5px; }
+    
+    .badge-type { font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; font-weight: 800; text-transform: uppercase; display: inline-block; width: 85px; text-align: center; }
+    .badge-fisico { background-color: #e2e5ec; color: #596c91; }
+    .badge-servico { background-color: #d1f3ff; color: #0084ad; }
+    .badge-software { background-color: #fce4ec; color: #d81b60; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+                <i class="fas fa-file-invoice-dollar text-info mr-2"></i>Itens da Proposta #{{ proposta.id_proposta }}
+            </h1>
+        </div>
+        <a href="{% url 'crm:oportunidade_detail' proposta.oportunidade.pk %}" class="btn btn-outline-secondary shadow-sm rounded-pill px-4">
+            <i class="fas fa-check-circle mr-1"></i> Concluir e Voltar
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 font-weight-bold text-primary">Composição do Orçamento</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-clean mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="px-4" style="width: 120px;">Categoria</th>
+                                    <th>Descrição do Item</th>
+                                    <th class="text-center" style="width: 100px;">Qtd</th>
+                                    <th class="text-right" style="width: 130px;">Unitário</th>
+                                    <th class="text-right" style="width: 130px;">Subtotal</th>
+                                    <th class="text-center" style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-itens-proposta">
+                                {% for item in proposta.itens.all %}
+                                    <tr class="item-row" id="item-{{ item.pk }}">
+                                        <td class="px-4 align-middle">
+                                            {% if "SER-" in item.resumo_item or "MÃO DE OBRA" in item.resumo_item.upper %}
+                                                <span class="badge-type badge-servico">Serviço</span>
+                                            {% elif "CON-" in item.resumo_item or "SOFT" in item.resumo_item.upper %}
+                                                <span class="badge-type badge-software">Software</span>
+                                            {% else %}
+                                                <span class="badge-type badge-fisico">Físico</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="align-middle"><strong>{{ item.resumo_item }}</strong></td>
+                                        <td class="align-middle">
+                                            <input type="number" name="qtd" value="{{ item.quantidade }}" class="form-control form-control-sm text-center input-edit" hx-post="{% url 'crm:item_proposta_atualizar' item.pk %}" hx-trigger="change" hx-target="#item-{{ item.pk }}" hx-swap="outerHTML">
+                                        </td>
+                                        <td class="align-middle text-right">
+                                            <input type="text" name="preco" value="{{ item.preco_unitario }}" class="form-control form-control-sm text-right input-edit" hx-post="{% url 'crm:item_proposta_atualizar' item.pk %}" hx-trigger="change" hx-target="#item-{{ item.pk }}" hx-swap="outerHTML">
+                                        </td>
+                                        <td class="align-middle text-right font-weight-bold text-dark">R$ {{ item.total|intcomma }}</td>
+                                        <td class="align-middle text-center">
+                                            <button class="btn btn-link text-danger p-0" hx-delete="{% url 'crm:item_proposta_excluir' item.pk %}" hx-target="#item-{{ item.pk }}" hx-swap="delete" hx-confirm="Remover item?">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card detail-card bg-gradient-info text-white mb-4 shadow">
+                <div class="card-body text-center py-4">
+                    <h6 class="text-white-50 small font-weight-bold text-uppercase">Total da Proposta</h6>
+                    <h2 class="font-weight-bold mb-0" id="valor-total-proposta">R$ {{ proposta.valor_total|intcomma }}</h2>
+                </div>
+            </div>
+
+            <div class="card detail-card mb-4" style="background-color: #f4f5f7;">
+                <div class="card-body p-4">
+                    <h6 class="text-dark font-weight-bold mb-4 small text-uppercase"><i class="fas fa-search mr-2 text-info"></i>Catálogo Geral</h6>
+                    <form id="form-add-item" hx-post="{% url 'crm:item_proposta_add' proposta.pk %}" hx-target="#lista-itens-proposta" hx-swap="beforeend">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="label-custom">Pesquisar Itens</label>
+                            <select class="form-control select2-busca" name="catalogo_id" id="select-catalogo" required>
+                                <option value=""></option>
+                                <optgroup label="📦 ITENS FÍSICOS">
+                                    {% for p in produtos_catalogo %}
+                                        <option value="P-{{ p.id }}">{{ p.codigo_interno }} - {{ p.nome }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                                <optgroup label="🛠️ SERVIÇOS / SOFTWARES">
+                                    {% for s in servicos_catalogo %}
+                                        <option value="S-{{ s.id }}">{{ s.nome }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="d-flex mt-3">
+                            <button type="submit" class="btn btn-info flex-grow-1 rounded-pill shadow-sm font-weight-bold mr-2">
+                                <i class="fas fa-plus mr-2"></i>Incluir
+                            </button>
+                            <button type="button" id="btn-limpar-busca" class="btn btn-outline-secondary rounded-pill px-3">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.select2-busca').select2({ placeholder: "Selecione o item...", allowClear: true, width: '100%' });
+
+        // Botão Cancelar: Limpa a busca atual
+        $('#btn-limpar-busca').on('click', function() {
+            $('#select-catalogo').val(null).trigger('change');
+        });
+
+        // Limpeza após adição HTMX
+        document.body.addEventListener('htmx:afterOnRequest', function(evt) {
+            if(evt.detail.successful && evt.detail.elt.id === 'form-add-item') {
+                $('#select-catalogo').val(null).trigger('change');
+                htmx.ajax('GET', '{% url "crm:proposta_total_fragment" proposta.pk %}', '#valor-total-proposta');
+            }
+        });
+    });
+</script>
+{% endblock %}

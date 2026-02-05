@@ -1,0 +1,187 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCMAIS ERP - Login</title>
+
+    <link href="{% static 'sbadmin2/vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="{% static 'sbadmin2/css/sb-admin-2.min.css' %}" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-grad: linear-gradient(135deg, #1a1c23 0%, #242a38 100%);
+            --accent-grad: linear-gradient(90deg, #5e72e4 0%, #825ee4 100%);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--primary-grad);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Animação: 3 Pingos na mesma linha */
+        @keyframes tripleBounce {
+            0% { transform: translateY(-20px) scale(0.8); opacity: 0; }
+            /* 1º Pingo */
+            20% { transform: translateY(0) scale(1); opacity: 1; }
+            35% { transform: translateY(-12px) scale(0.95); }
+            /* 2º Pingo */
+            50% { transform: translateY(0) scale(1); }
+            65% { transform: translateY(-6px) scale(0.98); }
+            /* 3º Pingo */
+            80% { transform: translateY(0) scale(1); }
+            90% { transform: translateY(-2px) scale(0.99); }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 1.2rem;
+            /* Executa a animação de 1.5s para suavizar os 3 pingos */
+            animation: tripleBounce 1.5s cubic-bezier(0.215, 0.610, 0.355, 1.000) forwards;
+        }
+
+        .logo-img {
+            width: 75px; /* Tamanho equilibrado */
+            height: auto;
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.4));
+        }
+
+        /* Estilos do Card (Glassmorphism) */
+        .login-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .brand-logo {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        .brand-logo span {
+            background: var(--accent-grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-subtitle {
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            font-size: 0.85rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-group-custom { position: relative; margin-bottom: 1.5rem; }
+        .form-group-custom i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: rgba(255, 255, 255, 0.3); }
+
+        .form-input-premium {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 12px !important;
+            color: #fff !important;
+            padding: 1.2rem 1.2rem 1.2rem 3rem !important;
+            height: auto !important;
+            transition: 0.3s ease;
+        }
+
+        .form-input-premium:focus {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-color: #5e72e4 !important;
+            box-shadow: 0 0 15px rgba(94, 114, 228, 0.2) !important;
+        }
+
+        .btn-premium {
+            background: var(--accent-grad);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 700;
+            padding: 1rem;
+            width: 100%;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(94, 114, 228, 0.3);
+            transition: 0.3s;
+            margin-top: 0.5rem;
+        }
+
+        .btn-premium:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(94, 114, 228, 0.4); color: #fff; }
+
+        .login-footer { text-align: center; margin-top: 2rem; }
+        .login-footer a { color: rgba(255, 255, 255, 0.4); font-size: 0.8rem; text-decoration: none; transition: 0.2s; }
+        .login-footer a:hover { color: #5e72e4; }
+
+        .bg-blob {
+            position: absolute; width: 450px; height: 450px; background: #5e72e4;
+            filter: blur(90px); opacity: 0.12; z-index: -1; border-radius: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-blob" style="top: -150px; left: -150px;"></div>
+    <div class="bg-blob" style="bottom: -150px; right: -150px; background: #825ee4;"></div>
+
+    <div class="login-card">
+        <div class="logo-container">
+            <img src="{% static 'img/logo.png' %}" alt="Logo FLUIR ERP" class="logo-img">
+        </div>
+
+        <div class="brand-logo">FLUIR<span>ERP</span></div>
+        <div class="login-subtitle">Bem-vindo. Acesse sua conta.</div>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="alert alert-danger bg-danger border-0 text-white small text-center mb-4 py-2">
+                    Credenciais inválidas. Tente novamente.
+                </div>
+            {% endif %}
+
+            <div class="form-group-custom">
+                <input type="text" class="form-control form-input-premium"
+                    name="{{ form.username.name }}" placeholder="Usuário" required autofocus>
+                <i class="fas fa-user"></i>
+            </div>
+
+            <div class="form-group-custom">
+                <input type="password" class="form-control form-input-premium"
+                    name="{{ form.password.name }}" placeholder="Senha" required>
+                <i class="fas fa-lock"></i>
+            </div>
+
+            <button type="submit" class="btn btn-premium">
+                Entrar no Sistema <i class="fas fa-chevron-right ml-2" style="font-size: 0.8rem;"></i>
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <a href="{% url 'reset_password' %}"><i class="fas fa-unlock-alt mr-1"></i> Esqueci minha senha</a>
+            <span class="mx-2" style="color: rgba(255,255,255,0.05)">|</span>
+            <a href="#"><i class="fas fa-life-ring mr-1"></i> Suporte</a>
+        </div>
+    </div>
+
+    <script src="{% static 'sbadmin2/vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'sbadmin2/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

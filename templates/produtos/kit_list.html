@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .rotate-icon { transition: all 0.3s; }
+    /* Estilo para girar a seta quando o colapso NÃO está fechado */
+    .clickable-area:not(.collapsed) .rotate-icon { transform: rotate(90deg); }
+    .accordion-toggle:hover { background-color: rgba(78, 115, 223, 0.05); }
+    code { color: #e83e8c; font-weight: bold; }
+    .clickable-area { cursor: pointer; }
+    /* Garante que o fundo da linha de detalhes seja suave */
+    .detail-row { background-color: #f8f9fc !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Kits de Materiais / Combos</h6>
+            <button class="btn btn-primary btn-sm" 
+                    hx-get="{% url 'produtos:kit_create' %}" 
+                    hx-target="#htmx-modal-content" 
+                    data-toggle="modal" data-target="#htmx-modal">
+                <i class="fas fa-box-open mr-1"></i> Novo Kit
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th style="width: 40px;"></th>
+                            <th>Nome do Kit</th>
+                            <th>Descrição</th>
+                            <th>Custo Total Estimado</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for kit in kits %}
+                        <tr class="shadow-sm">
+                            <td class="text-center text-primary clickable-area collapsed" 
+                                data-toggle="collapse" data-target="#kit-details-{{ kit.pk }}">
+                                <i class="fas fa-chevron-right rotate-icon"></i>
+                            </td>
+                            <td class="clickable-area collapsed" 
+                                data-toggle="collapse" data-target="#kit-details-{{ kit.pk }}">
+                                <strong>{{ kit.nome }}</strong>
+                            </td>
+                            <td>{{ kit.descricao|truncatechars:60|default:"---" }}</td>
+                            <td class="text-success font-weight-bold">R$ {{ kit.custo_total_estimado }}</td>
+                            <td class="text-center">
+                                <button class="btn btn-warning btn-sm" title="Editar Kit"
+                                        hx-get="{% url 'produtos:kit_update' kit.pk %}"
+                                        hx-target="#htmx-modal-content"
+                                        data-toggle="modal" data-target="#htmx-modal">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr id="kit-details-{{ kit.pk }}" class="collapse detail-row">
+                            <td colspan="5" class="p-4">
+                                <div class="card shadow-sm">
+                                    <div class="card-header py-2 bg-gray-100">
+                                        <h6 class="m-0 font-weight-bold text-secondary small">
+                                            <i class="fas fa-list mr-2"></i>Composição do Kit
+                                        </h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <table class="table table-sm table-striped mb-0">
+                                            <thead class="thead-light">
+                                                <tr class="small">
+                                                    <th class="pl-3">Produto</th>
+                                                    <th>Código</th>
+                                                    <th class="text-center">Qtd.</th>
+                                                    <th class="text-right">Custo Unit.</th>
+                                                    <th class="text-right pr-3">Subtotal</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for item in kit.itens_kit.all %}
+                                                <tr class="small">
+                                                    <td class="pl-3">{{ item.produto.nome }}</td>
+                                                    <td><code>{{ item.produto.codigo_interno }}</code></td>
+                                                    <td class="text-center">{{ item.quantidade }}</td>
+                                                    <td class="text-right">R$ {{ item.produto.custo_padrao }}</td>
+                                                    <td class="text-right pr-3 font-weight-bold">R$ {{ item.subtotal_custo }}</td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-muted py-3">
+                                                        Nenhum item vinculado a este kit.
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">Nenhum kit encontrado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

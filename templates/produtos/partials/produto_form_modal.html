@@ -1,0 +1,116 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title" id="produtoModalLabel">
+        {% if form.instance.pk %}
+            <i class="fas fa-edit mr-2"></i>Editar {{ form.instance.get_tipo_produto_display }}: {{ form.instance.nome }}
+        {% else %}
+            <i class="fas fa-plus-circle mr-2"></i>Novo Item (Produto ou Serviço)
+        {% endif %}
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form hx-post="{{ request.path }}" hx-target="#htmx-modal-content" class="needs-validation">
+    {% csrf_token %}
+    
+    <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+        
+        <div class="row">
+            <div class="col-md-8">
+                {{ form.nome|as_crispy_field }}
+            </div>
+            <div class="col-md-4">
+                {{ form.tipo_produto|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                {{ form.codigo_interno|as_crispy_field }}
+            </div>
+            <div class="col-md-6">
+                {{ form.categoria|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="card bg-light mb-3">
+            <div class="card-body p-3">
+                <h6 class="font-weight-bold text-primary mb-3"><i class="fas fa-dollar-sign mr-2"></i>Precificação</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.metodo_precificacao|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.custo_padrao|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.markup_padrao|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.preco_venda_padrao|as_crispy_field }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                {{ form.dias_garantia|as_crispy_field }}
+            </div>
+            <div class="col-md-4">
+                {{ form.lead_time_dias|as_crispy_field }}
+            </div>
+            <div class="col-md-4">
+                <div class="mt-4 pt-2">
+                    {{ form.ativo|as_crispy_field }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                {{ form.descricao_curta|as_crispy_field }}
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer bg-gray-100">
+        <button type="button" class="btn btn-secondary shadow-sm" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary shadow-sm">
+            <i class="fas fa-save mr-1"></i> Salvar Registro
+        </button>
+    </div>
+</form>
+
+<script>
+    // Lógica de Cálculo de Precificação Automática
+    (function() {
+        const campoMetodo = document.querySelector('[name="metodo_precificacao"]');
+        const campoCusto = document.querySelector('[name="custo_padrao"]');
+        const campoMarkup = document.querySelector('[name="markup_padrao"]');
+        const campoVenda = document.querySelector('[name="preco_venda_padrao"]');
+
+        function calcularPrecoVenda() {
+            // Se o método for 'Markup sobre Custo' (MARC)
+            if (campoMetodo.value === 'MARC') {
+                const custo = parseFloat(campoCusto.value) || 0;
+                const markup = parseFloat(campoMarkup.value) || 0;
+                
+                if (custo > 0) {
+                    const precoCalculado = custo * (1 + (markup / 100));
+                    campoVenda.value = precoCalculado.toFixed(2);
+                }
+            }
+        }
+
+        // Adiciona ouvintes de eventos
+        [campoCusto, campoMarkup, campoMetodo].forEach(el => {
+            if (el) el.addEventListener('input', calcularPrecoVenda);
+        });
+    })();
+</script>

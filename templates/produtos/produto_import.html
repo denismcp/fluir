@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-boxes mr-2 text-success"></i>Importar Catálogo de Produtos
+        </h1>
+        <a href="{% url 'produtos:produto_list' %}" class="btn btn-secondary btn-sm shadow-sm">
+            <i class="fas fa-arrow-left fa-sm mr-1"></i> Voltar para Lista
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-10">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-success border-bottom-success">
+                    <h6 class="m-0 font-weight-bold text-white">Upload de Planilha de Produtos (CSV/XLSX)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success border-left-success shadow-sm">
+                        <h5 class="font-weight-bold text-success"><i class="fas fa-info-circle mr-2"></i>Instruções de Importação:</h5>
+                        <p class="mb-2">A planilha deve conter os seguintes cabeçalhos para uma importação precisa:</p>
+                        <div class="bg-white p-2 rounded border mb-3">
+                            <code>nome, preco_venda_padrao, categoria, codigo_interno, descricao_curta</code>
+                        </div>
+                        <ul class="small mb-0">
+                            <li><strong>nome:</strong> Descrição do produto (Obrigatório).</li>
+                            <li><strong>categoria:</strong> Nome da categoria. O sistema criará automaticamente se não existir.</li>
+                            <li><strong>codigo_interno:</strong> SKU do produto. Se vazio, o sistema gera <strong>PRD-XXX</strong>.</li>
+                        </ul>
+                    </div>
+
+                    <form action="{% url 'produtos:produto_import' %}" method="post" enctype="multipart/form-data" class="mt-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="contexto" value="produto">
+
+                        <div class="form-group border p-5 text-center bg-light rounded shadow-inner" style="border-style: dashed !important; border-width: 2px !important; border-color: #1cc88a !important;">
+                            <i class="fas fa-file-excel fa-3x text-gray-400 mb-3"></i>
+                            <br>
+                            <label for="arquivo" class="font-weight-bold text-success" style="cursor: pointer;">
+                                Selecione o arquivo ou arraste para esta área
+                            </label>
+                            <input type="file" name="arquivo" id="arquivo" class="form-control-file d-block mx-auto" style="max-width: 300px;" required>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Formatos aceitos: .csv, .xlsx, .xls</span>
+                            <button type="submit" class="btn btn-success px-4 shadow">
+                                <i class="fas fa-check-circle mr-1"></i> Iniciar Importação
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4 border-left-success">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Dúvidas no preenchimento?</div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800">Baixe o modelo de planilha padrão para produtos.</div>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{% url 'produtos:baixar_template' %}" class="btn btn-outline-success btn-sm">
+                                <i class="fas fa-download mr-1"></i> Baixar Modelo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

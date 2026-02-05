@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    /* Padronização do Layout Premium */
+    .stat-card { border: none; border-radius: 12px; transition: transform 0.2s; }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+    .bg-gradient-info { background: linear-gradient(135deg, #11cdef 0, #1171ef 100%) !important; }
+    .bg-gradient-success { background: linear-gradient(135deg, #2dce89 0, #2dcecc 100%) !important; }
+    .bg-gradient-warning { background: linear-gradient(135deg, #ff9100 0, #ffc400 100%) !important; }
+    
+    .icon-shape {
+        width: 48px; height: 48px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: white;
+    }
+    .card-title-dash { color: rgba(255, 255, 255, 0.8) !important; font-size: 0.85rem; letter-spacing: 1px; }
+    .card-value-dash { color: white !important; font-size: 1.5rem; font-weight: 700; }
+
+    /* ESTILO PREMIUM PARA LINKS (Sem traço convencional) */
+    .quick-link-premium {
+        color: #32325d;
+        text-decoration: none !important;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: inline-block;
+    }
+    .quick-link-premium:hover {
+        color: #5e72e4;
+        transform: translateX(3px);
+    }
+    .quick-link-sub {
+        color: #8898aa;
+        text-decoration: none !important;
+        font-size: 0.875rem;
+        transition: color 0.2s ease;
+    }
+    .quick-link-sub:hover {
+        color: #5e72e4;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+            <i class="fas fa-file-invoice-dollar mr-2 text-info"></i>Gestão de Propostas
+        </h1>
+        <div class="dropdown">
+            <button class="btn btn-info dropdown-toggle shadow-sm px-4" type="button" id="dropdownMenuButton" data-toggle="dropdown">
+                <i class="fas fa-print mr-2"></i>Relatórios
+            </button>
+            <div class="dropdown-menu shadow border-0">
+                <a class="dropdown-item" href="#"><i class="fas fa-file-pdf mr-2 text-danger"></i>Exportar PDF</a>
+                <a class="dropdown-item" href="#"><i class="fas fa-file-excel mr-2 text-success"></i>Exportar Excel</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card stat-card bg-gradient-info shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-uppercase card-title-dash font-weight-bold mb-1">Total Emitido</h6>
+                            <span class="card-value-dash">R$ {{ total_emitido|default:"0,00"|intcomma }}</span>
+                        </div>
+                        <div class="col-auto">
+                            <div class="icon-shape shadow"><i class="fas fa-file-invoice fa-lg"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card stat-card bg-gradient-success shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-uppercase card-title-dash font-weight-bold mb-1">Propostas Aceitas</h6>
+                            <span class="card-value-dash">R$ {{ total_aceito|default:"0,00"|intcomma }}</span>
+                        </div>
+                        <div class="col-auto">
+                            <div class="icon-shape shadow"><i class="fas fa-check-double fa-lg"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card stat-card bg-gradient-warning shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-uppercase card-title-dash font-weight-bold mb-1">Em Aberto</h6>
+                            <span class="card-value-dash">{{ qtd_pendente|default:"0" }}</span>
+                        </div>
+                        <div class="col-auto">
+                            <div class="icon-shape shadow"><i class="fas fa-hourglass-half fa-lg"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-12 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive" style="overflow: visible !important;">
+                <table class="table table-hover align-items-center mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="px-4 py-3 border-0">Código</th>
+                            <th class="py-3 border-0">Cliente / Oportunidade</th>
+                            <th class="py-3 border-0">Data Emissão</th>
+                            <th class="py-3 border-0 text-right">Valor Total</th>
+                            <th class="py-3 border-0 text-center">Status</th>
+                            <th class="text-center py-3 border-0 px-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        {% for proposta in propostas %}
+                        <tr>
+                            <td class="px-4 align-middle">
+                                <a href="{% url 'crm:proposta_itens' proposta.pk %}" class="quick-link-premium">
+                                    #{{ proposta.id_proposta }}
+                                </a>
+                            </td>
+                            <td class="align-middle">
+                                <div class="d-flex flex-column">
+                                    <a href="{% url 'crm:cliente_detail' proposta.oportunidade.cliente.pk %}" class="quick-link-premium" style="font-size: 0.9rem;">
+                                        {{ proposta.oportunidade.cliente.razao_social }}
+                                    </a>
+                                    <a href="{% url 'crm:oportunidade_detail' proposta.oportunidade.pk %}" class="quick-link-sub">
+                                        <i class="fas fa-lightbulb fa-xs mr-1"></i>{{ proposta.oportunidade.nome }}
+                                    </a>
+                                </div>
+                            </td>
+                            <td class="align-middle text-muted">{{ proposta.data_emissao|date:"d/m/Y" }}</td>
+                            <td class="align-middle text-right font-weight-bold text-success">
+                                R$ {{ proposta.valor_total|intcomma }}
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="badge badge-pill px-3 py-2 
+                                    {% if proposta.status == 'aceita' %}badge-success
+                                    {% elif proposta.status == 'recusada' %}badge-danger
+                                    {% else %}badge-warning{% endif %}">
+                                    {{ proposta.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-center align-middle px-4">
+                                <div class="dropdown">
+                                    <button class="btn btn-link text-muted p-0" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="dropdown-menu shadow border-0 dropdown-menu-right">
+                                        <a class="dropdown-item" href="{% url 'crm:proposta_itens' proposta.pk %}"><i class="fas fa-list mr-2 text-info"></i>Gerenciar Itens</a>
+                                        <a class="dropdown-item" href="{% url 'crm:proposta_pdf_completa' oport_id=proposta.oportunidade.pk %}?proposta_id={{ proposta.pk }}" target="_blank">
+                                            <i class="fas fa-file-pdf mr-2 text-danger"></i>PDF Completo
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <button class="dropdown-item text-danger" 
+                                                hx-delete="{% url 'crm:proposta_delete' proposta.pk %}" 
+                                                hx-confirm="Excluir permanentemente?"
+                                                hx-target="closest tr">
+                                            <i class="fas fa-trash mr-2"></i>Excluir
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center py-5 text-muted">Nenhuma proposta encontrada.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Garantir que dropdowns funcionem após interações HTMX
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        $('.dropdown-toggle').dropdown();
+    });
+</script>
+{% endblock %}

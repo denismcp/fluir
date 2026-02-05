@@ -1,0 +1,143 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title">
+        {% if form.instance.pk %}
+            <i class="fas fa-edit mr-2"></i>Editar Cliente: {{ form.instance.razao_social }}
+        {% else %}
+            <i class="fas fa-search mr-2"></i>Novo Cadastro (CNPJ/CPF)
+        {% endif %}
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+</div>
+
+<form hx-post="{{ request.path }}" hx-target="#htmx-modal-content">
+    {% csrf_token %}
+    <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+        
+        <div class="form-row">
+            <div class="form-group col-md-4 mb-0">
+                {{ form.cnpj_cpf|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-8 mb-0">
+                {{ form.razao_social|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-12 mb-0">
+                {{ form.nome_fantasia|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row mt-2">
+            <div class="form-group col-md-7 mb-0">
+                {{ form.email_corporativo|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-5 mb-0">
+                {{ form.telefone_principal|as_crispy_field }}
+            </div>
+        </div>
+
+        <hr class="my-3">
+
+        <div class="form-row">
+            <div class="form-group col-md-3 mb-0">
+                {{ form.cep|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-9 mb-0">
+                {{ form.endereco|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-8 mb-0">
+                {{ form.cidade|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-4 mb-0">
+                {{ form.estado|as_crispy_field }}
+            </div>
+        </div>
+
+        <hr class="my-3">
+
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0">
+                {{ form.regime_tributario|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-6 mb-0">
+                {{ form.tipo_contribuinte|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-6 mb-0">
+                {{ form.limite_credito|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-6 mb-0 d-flex align-items-center" style="padding-top: 2rem;">
+                <div class="custom-control custom-checkbox">
+                {{ form.bloquear_faturamento|as_crispy_field }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-12 mb-0">
+                {{ form.etiquetas|as_crispy_field }}
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary shadow-sm">
+            <i class="fas fa-save mr-1"></i> Salvar Cliente
+        </button>
+    </div>
+</form>
+
+<script>
+    $(document).ready(function() {
+        $('.cnpj-mask').mask('00.000.000/0000-00', {reverse: true});
+        $('.cep-mask').mask('00000-000');
+        
+        // Máscara para o Telefone Principal da Empresa
+        var telBehavior = function (val) {
+            return val.replace(/\D/g, '').length === 11 ? '(00) 00000-0000' : '(00) 0000-00009';
+        },
+        telOptions = {
+            onKeyPress: function(val, e, field, options) {
+                field.mask(telBehavior.apply({}, arguments), options);
+            }
+        };
+        $('input[name="telefone_principal"]').mask(telBehavior, telOptions);
+
+        $('#id_cnpj_cpf').on('blur', function() {
+            var valor = $(this).val().replace(/\D/g, '');
+            if (valor != "" && valor.length === 14) {
+                $.ajax({
+                    url: "https://receitaws.com.br/v1/cnpj/" + valor,
+                    method: "GET",
+                    dataType: "jsonp",
+                    success: function(dados) {
+                        if (dados.status !== "ERROR") {
+                            $("input[name='razao_social']").val(dados.nome);
+                            $("input[name='nome_fantasia']").val(dados.fantasia || dados.nome);
+                            
+                            // Tenta buscar o e-mail e telefone da API se disponíveis
+                            if (dados.email) $("input[name='email_corporativo']").val(dados.email.toLowerCase());
+                            if (dados.telefone) $("input[name='telefone_principal']").val(dados.telefone).trigger('input');
+
+                            if (dados.cep) {
+                                $("input[name='cep']").val(dados.cep.replace(/\D/g, '')).trigger('input');
+                                $("input[name='endereco']").val(dados.logradouro + ", " + dados.numero);
+                                $("input[name='cidade']").val(dados.municipio);
+                                $("input[name='estado']").val(dados.uf);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>

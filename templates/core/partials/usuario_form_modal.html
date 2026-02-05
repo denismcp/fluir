@@ -1,0 +1,115 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-gradient-primary text-white border-0">
+    <h5 class="modal-title font-weight-bold" id="htmx-modal-label">
+        <i class="fas fa-user-plus mr-2"></i>
+        {% if form.instance.pk %}Editar Usuário / Colaborador{% else %}Novo Acesso ao Sistema{% endif %}
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form hx-post="{{ request.path }}" hx-target="#htmx-modal-content" class="bg-light">
+    {% csrf_token %}
+    <div class="modal-body p-4">
+        
+        <div class="card shadow-sm border-0 mb-4 rounded-15">
+            <div class="card-body p-4">
+                <h6 class="text-primary font-weight-bold mb-4 small text-uppercase" style="letter-spacing: 1px;">
+                    <i class="fas fa-lock mr-2"></i>Credenciais e Identificação
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">{{ form.first_name|as_crispy_field }}</div>
+                    <div class="col-md-6">{{ form.last_name|as_crispy_field }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">{{ form.username|as_crispy_field }}</div>
+                    <div class="col-md-6">{{ form.email|as_crispy_field }}</div>
+                </div>
+                {% if not form.instance.pk %}
+                <div class="row">
+                    <div class="col-md-6">{{ form.password|as_crispy_field }}</div>
+                    <div class="col-md-6">{{ form.confirm_password|as_crispy_field }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4 rounded-15">
+            <div class="card-body p-4">
+                <h6 class="text-warning font-weight-bold mb-4 small text-uppercase" style="letter-spacing: 1px;">
+                    <i class="fas fa-sitemap mr-2"></i>Atribuições e Regras
+                </h6>
+                <div class="row">
+                    <div class="col-md-12 mb-2">
+                        {{ form.departamento|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">{{ form.regra|as_crispy_field }}</div>
+                    <div class="col-md-6">
+                        {{ form.taxa_comissao|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <div class="custom-control custom-switch">
+                            {{ form.is_active|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-0 rounded-15 border-left-info" id="vendedor-extra-fields">
+            <div class="card-body p-4">
+                <h6 class="text-info font-weight-bold mb-4 small text-uppercase" style="letter-spacing: 1px;">
+                    <i class="fas fa-bullseye mr-2"></i>Parâmetros de Vendas / CRM
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.indice_vendedor|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="font-weight-bold small text-uppercase">Meta Mensal Prevista (R$)</label>
+                        <input type="text" name="meta_mensal_valor" class="form-control money-mask" 
+                               placeholder="R$ 0,00" 
+                               value="{% if form.instance.pk %}{{ form.instance.metas.first.valor_objetivo|default:'' }}{% endif %}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer border-0 bg-white">
+        <button type="button" class="btn btn-link text-muted font-weight-bold" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary px-5 shadow-sm rounded-pill font-weight-bold">
+            <i class="fas fa-save mr-2"></i>{% if form.instance.pk %}Salvar Alterações{% else %}Finalizar Cadastro{% endif %}
+        </button>
+    </div>
+</form>
+
+<style>
+    .rounded-15 { border-radius: 15px !important; }
+    .bg-gradient-primary { background: linear-gradient(135deg, #5e72e4 0, #825ee4 100%) !important; }
+    
+    .form-control {
+        border-radius: 8px !important;
+        border: 1px solid #e9ecef !important;
+        background-color: #f8f9fc !important;
+        padding: 0.6rem 0.75rem !important;
+        font-size: 0.9rem !important;
+    }
+    
+    label {
+        font-size: 0.7rem !important;
+        font-weight: 800 !important;
+        color: #8898aa !important;
+        text-transform: uppercase !important;
+        margin-bottom: 0.4rem !important;
+    }
+
+    .border-left-info { border-left: 5px solid #11cdef !important; }
+</style>

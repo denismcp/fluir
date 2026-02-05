@@ -1,0 +1,291 @@
+{% extends "base.html" %} 
+{% load static %}
+{% load humanize %}
+
+{% block title %}Dashboard de Vendas | Fluir{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Visão Geral de Performance</h1>
+        <span class="badge badge-light shadow-sm py-2 px-3 text-muted border">
+            <i class="fas fa-calendar-alt mr-2"></i>{{ mes_atual }} / 2026
+        </span>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-15 mb-4 overflow-hidden border-left-success">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-8 border-right-md">
+                    <h6 class="text-uppercase text-muted font-weight-bold small mb-1" style="letter-spacing: 1px;">
+                        {% if is_gestor %}Acompanhamento de Metas Comerciais (Global){% else %}Minha Meta de Vendas{% endif %}
+                    </h6>
+                    <h3 class="font-weight-bold text-dark mb-3">
+                        R$ {{ valor_realizado|floatformat:2|intcomma }} 
+                        <span class="text-muted h6 font-weight-normal">
+                            / {% if valor_meta > 0 %}alvo R$ {{ valor_meta|floatformat:2|intcomma }}{% else %}<span class="badge badge-soft-warning ml-2">Sem meta definida</span>{% endif %}
+                        </span>
+                    </h3>
+                    
+                    <div class="progress rounded-pill shadow-inner mb-2" style="height: 14px; background: #f4f5f7;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated 
+                            {% if porcentagem_meta < 50 %}bg-danger
+                            {% elif porcentagem_meta < 85 %}bg-warning
+                            {% else %}bg-success{% endif %}" 
+                            role="progressbar" 
+                            style="width: {{ porcentagem_meta|stringformat:".1f" }}%" 
+                            aria-valuenow="{{ porcentagem_meta }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            <p class="mb-0 small font-weight-bold {% if porcentagem_meta < 50 %}text-danger{% else %}text-success{% endif %}">
+                                {% if valor_meta > 0 %}
+                                    <i class="fas fa-chart-line mr-1"></i> {{ porcentagem_meta }}% da meta atingida
+                                {% else %}
+                                    <i class="fas fa-info-circle mr-1"></i> Defina uma meta para acompanhar o progresso
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div class="text-right">
+                            <p class="mb-0 small font-weight-bold">
+                                <span class="text-muted">vs mês anterior: </span>
+                                <span class="{% if crescimento_vs_anterior >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                    <i class="fas fa-arrow-{% if crescimento_vs_anterior >= 0 %}up{% else %}down{% endif %} mr-1"></i>
+                                    {{ crescimento_vs_anterior }}%
+                                </span>
+                            </p>
+                            <span class="text-xs text-muted">(R$ {{ valor_realizado_anterior|floatformat:2|intcomma }})</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center d-none d-md-block">
+                    <div class="icon-circle {% if porcentagem_meta >= 100 %}bg-soft-success text-success{% else %}bg-soft-primary text-primary{% endif %} mx-auto shadow-sm" style="width: 80px; height: 80px; font-size: 2rem;">
+                        <i class="fas {% if porcentagem_meta >= 100 %}fa-trophy{% else %}fa-bullseye{% endif %}"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <a href="{% url 'crm:kanban' %}?vendedor={{ user.id }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm rounded-15 h-100 py-2 border-left-primary card-hover">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Minhas Oportunidades Abertas</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ qtd_abertas }} <span class="text-muted small ml-2" style="font-size: 0.8rem; font-weight: 400;">R$ {{ vol_abertas|intcomma }}</span>
+                                </div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-folder-open fa-2x text-gray-200"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm rounded-15 h-100 py-2 border-left-success">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Minhas Oportunidades Fechadas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ qtd_fechadas }} <span class="text-muted small ml-2" style="font-size: 0.8rem; font-weight: 400;">R$ {{ vol_fechadas|intcomma }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto"><i class="fas fa-check-circle fa-2x text-gray-200"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm rounded-15 h-100 py-2 border-left-danger">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Minhas Oportunidades Perdidas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ qtd_perdidas }} <span class="text-muted small ml-2" style="font-size: 0.8rem; font-weight: 400;">R$ {{ vol_perdidas|intcomma }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto"><i class="fas fa-times-circle fa-2x text-gray-200"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <a href="{% url 'crm:cliente_list' %}?responsavel={{ user.id }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm rounded-15 h-100 py-2 border-left-warning card-hover">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Meus Clientes</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ qtd_clientes_meus }} Vinculados</div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-user-check fa-2x text-gray-200"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        {% if is_gestor %}
+            <div class="col-xl-4 col-md-6 mb-4">
+                <a href="{% url 'crm:kanban' %}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-15 h-100 py-2 border-left-primary card-hover">
+                        </div>
+                </a>
+            </div>
+
+            <div class="col-xl-4 col-md-6 mb-4">
+                <a href="{% url 'crm:cliente_list' %}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-15 h-100 py-2 border-left-warning card-hover">
+                        </div>
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow-sm border-0 rounded-15 mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        {% if is_gestor %}Evolução de Performance Comercial{% else %}Minha Evolução de Vendas{% endif %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="height: 320px;">
+                        <canvas id="faturamentoChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5">
+            {% if is_gestor %}
+                <div class="card shadow-sm border-0 rounded-15 mb-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Ranking de Vendedores - {{ mes_atual }}</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for vendedor in ranking_vendedores %}
+                            <div class="list-group-item border-0 d-flex align-items-center px-4 py-3">
+                                <div class="mr-3">
+                                    {% if forloop.counter == 1 %}
+                                        <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;">
+                                            <i class="fas fa-crown fa-xs"></i>
+                                        </div>
+                                    {% else %}
+                                        <div class="rounded-circle bg-light text-muted d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <small class="font-weight-bold">{{ forloop.counter }}º</small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 text-dark font-weight-bold small">{{ vendedor.get_full_name }}</h6>
+                                    <small class="text-muted">R$ {{ vendedor.realizado_mes|default:0|intcomma }}</small>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="p-4 text-center text-muted small">Sem vendas registradas no período.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card border-0 rounded-15 mb-4 shadow-sm overflow-hidden" style="background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);">
+                    <div class="card-body p-4 text-white">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-rocket fa-2x mr-3"></i>
+                            <h5 class="font-weight-bold mb-0">Rumo ao Alvo!</h5>
+                        </div>
+                        <p class="small opacity-8">Mantenha o foco nas suas oportunidades abertas no Kanban para bater sua meta pessoal.</p>
+                        <a href="{% url 'crm:kanban' %}" class="btn btn-white btn-sm rounded-pill px-4 font-weight-bold text-primary shadow-sm mt-2">
+                            Acessar Meu Pipeline
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .rounded-15 { border-radius: 15px !important; }
+    .shadow-inner { box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); }
+    .bg-soft-primary { background-color: #eef2ff; color: #5e72e4; }
+    .bg-soft-success { background-color: #e8f9f1; color: #2dce89; }
+    .icon-circle { display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+    .border-left-success { border-left: 5px solid #2dce89 !important; }
+    .border-left-info { border-left: 5px solid #11cdef !important; }
+    .border-left-primary { border-left: 5px solid #5e72e4 !important; }
+    .border-left-danger { border-left: 5px solid #f5365c !important; }
+    .border-left-dark { border-left: 5px solid #172b4d !important; }
+    .opacity-8 { opacity: 0.8; }
+    .btn-white { background: #fff; color: #5e72e4; border: none; }
+    .btn-white:hover { background: #f8f9fe; }
+    .card-hover:hover { transform: translateY(-5px); transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+    @media (min-width: 768px) { .border-right-md { border-right: 1px solid #eef2ff; } }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('faturamentoChart').getContext('2d');
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ grafico_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Meta Planejada',
+                        data: {{ grafico_meta|safe }},
+                        backgroundColor: 'rgba(226, 231, 248, 0.8)',
+                        borderRadius: 5,
+                    },
+                    {
+                        label: 'Realizado (Vendas)',
+                        data: {{ grafico_realizado|safe }},
+                        backgroundColor: '#5e72e4',
+                        borderRadius: 5,
+                    }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + 
+                                    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        ticks: { callback: v => 'R$ ' + v.toLocaleString('pt-BR') }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock content %}

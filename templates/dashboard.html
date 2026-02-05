@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    /* Restauração do Padrão Premium Elegante */
+    .dash-card { border: none; border-radius: 15px; transition: transform 0.3s ease; }
+    .dash-card:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.15) !important; }
+    
+    .bg-gradient-primary { background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important; }
+    .bg-gradient-success { background: linear-gradient(87deg, #2dce89 0, #2dcecc 100%) !important; }
+    .bg-gradient-info { background: linear-gradient(87deg, #11cdef 0, #1171ef 100%) !important; }
+    .bg-gradient-warning { background: linear-gradient(87deg, #fb6340 0, #fbb140 100%) !important; }
+    
+    .icon-shape-dash {
+        width: 48px; height: 48px;
+        background-color: rgba(255, 255, 255, .2);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: white;
+    }
+    .text-dash-label { color: rgba(255,255,255,.8); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .text-dash-value { color: white; font-size: 1.6rem; font-weight: 800; }
+    
+    /* Estilo para a Tabela e Lista de Atividades */
+    .detail-card { border: none; border-radius: 15px; box-shadow: 0 0 2rem 0 rgba(136, 152, 170, .15); }
+    .table-clean thead th { background-color: #f8f9fc; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; border: none; color: #8898aa; }
+    
+    /* Badges de Previsão */
+    .forecast-box { padding: 15px; border-radius: 12px; background: #f8f9fc; border: 1px solid #e9ecef; }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+                <i class="fas fa-chart-pie mr-2 text-primary"></i>Visão Executiva
+            </h1>
+            <p class="text-muted small mb-0">Relatório consolidado de performance em tempo real</p>
+        </div>
+        <div class="text-right">
+            <span class="badge badge-white shadow-sm border-0 px-3 py-2 text-dark font-weight-bold">
+                <i class="fas fa-calendar-day mr-2 text-info"></i>{{ now|date:"d \d\e F, Y" }}
+            </span>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dash-card bg-gradient-primary shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-dash-label">Pipeline Ativo</h6>
+                            <span class="text-dash-value">R$ {{ total_pipeline|intcomma }}</span>
+                        </div>
+                        <div class="col-auto"><div class="icon-shape-dash shadow-sm"><i class="fas fa-rocket fa-lg"></i></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dash-card bg-gradient-success shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-dash-label">MRR (Contratos)</h6>
+                            <span class="text-dash-value">R$ {{ total_mrr|intcomma }}</span>
+                        </div>
+                        <div class="col-auto"><div class="icon-shape-dash shadow-sm"><i class="fas fa-sync fa-lg"></i></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dash-card bg-gradient-info shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-dash-label">Propostas Abertas</h6>
+                            <span class="text-dash-value">{{ qtd_propostas_abertas }}</span>
+                        </div>
+                        <div class="col-auto"><div class="icon-shape-dash shadow-sm"><i class="fas fa-paper-plane fa-lg"></i></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dash-card bg-gradient-warning shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-dash-label">Alertas de Renovação</h6>
+                            <span class="text-dash-value">{{ qtd_renovacoes }}</span>
+                        </div>
+                        <div class="col-auto"><div class="icon-shape-dash shadow-sm"><i class="fas fa-bell fa-lg"></i></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-4">
+            <div class="card detail-card h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-user-plus mr-2"></i>Expansão de Base</h6>
+                </div>
+                <div class="card-body py-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-shape bg-light text-primary mr-3" style="width: 40px; height: 40px;"><i class="fas fa-users"></i></div>
+                            <div>
+                                <h6 class="mb-0 font-weight-bold">Clientes</h6>
+                                <small class="text-muted">Últimos 30 dias</small>
+                            </div>
+                        </div>
+                        <span class="h4 font-weight-bold text-primary mb-0">{{ clientes_30_dias }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-shape bg-light text-info mr-3" style="width: 40px; height: 40px;"><i class="fas fa-lightbulb"></i></div>
+                            <div>
+                                <h6 class="mb-0 font-weight-bold">Oportunidades</h6>
+                                <small class="text-muted">Últimos 7 dias</small>
+                            </div>
+                        </div>
+                        <span class="h4 font-weight-bold text-info mb-0">{{ oportunidades_7_dias }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-8">
+            <div class="card detail-card h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-calendar-check mr-2"></i>Forecast de Vendas (Fechamentos Previstos)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="forecast-box text-center">
+                                <small class="text-muted text-uppercase font-weight-bold d-block mb-2">Esta Semana</small>
+                                <span class="h5 font-weight-bold text-primary">{{ fechamento_semana }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="forecast-box text-center">
+                                <small class="text-muted text-uppercase font-weight-bold d-block mb-2">Próx. Semana</small>
+                                <span class="h5 font-weight-bold text-primary">{{ fechamento_prox_semana }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="forecast-box text-center">
+                                <small class="text-muted text-uppercase font-weight-bold d-block mb-2">Este Mês</small>
+                                <span class="h5 font-weight-bold text-success">{{ fechamento_mes }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="forecast-box text-center">
+                                <small class="text-muted text-uppercase font-weight-bold d-block mb-2">Próx. Mês</small>
+                                <span class="h5 font-weight-bold text-success">{{ fechamento_prox_mes }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="forecast-box text-center" style="border-bottom: 2px solid #fbb140;">
+                                <small class="text-muted text-uppercase font-weight-bold d-block mb-2">Trimestre</small>
+                                <span class="h5 font-weight-bold text-warning">{{ fechamento_trimestre }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="forecast-box text-center" style="border-bottom: 2px solid #fb6340;">
+                                <small class="text-muted text-uppercase font-weight-bold d-block mb-2">Semestre</small>
+                                <span class="h5 font-weight-bold text-danger">{{ fechamento_semestre }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-4">
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-history mr-2"></i>Últimas Interações</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for atividade in ultimas_atividades %}
+                        <a href="{% url 'crm:oportunidade_detail' atividade.oportunidade.pk %}" class="list-group-item list-group-item-action border-0 px-4 py-3">
+                            <div class="d-flex w-100 justify-content-between mb-1">
+                                <h6 class="mb-0 font-weight-bold text-dark small">{{ atividade.oportunidade.nome }}</h6>
+                                <small class="text-muted">{{ atividade.data_hora|timesince }}</small>
+                            </div>
+                            <p class="mb-0 text-muted small"><i class="fas fa-comment-alt mr-1"></i> {{ atividade.descricao|truncatechars:45 }}</p>
+                        </a>
+                        {% empty %}
+                        <div class="text-center py-5 text-muted small">Sem atividades registradas recentemente.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-8">
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-exclamation-circle mr-2"></i>Oportunidades em Aberto</h6>
+                    <a href="{% url 'crm:kanban' %}" class="btn btn-sm btn-primary rounded-pill px-3">Ver Pipeline Completo</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-items-center mb-0 table-clean">
+                            <thead>
+                                <tr>
+                                    <th class="px-4">Negócio</th>
+                                    <th>Etapa Atual</th>
+                                    <th class="text-right">Valor Estimado</th>
+                                    <th class="text-center px-4">Previsão</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for opt in oportunidades_criticas %}
+                                <tr>
+                                    <td class="px-4 align-middle">
+                                        <div class="font-weight-bold text-dark">{{ opt.nome }}</div>
+                                        <small class="text-muted">{{ opt.cliente.razao_social }}</small>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="badge badge-pill badge-info px-3 py-2" style="font-size: 0.65rem;">{{ opt.etapa.nome }}</span>
+                                    </td>
+                                    <td class="align-middle text-right font-weight-bold text-success">R$ {{ opt.valor_estimado|intcomma }}</td>
+                                    <td class="align-middle text-center px-4 text-muted small">{{ opt.data_fechamento_prevista|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center py-5 text-muted small">Nenhuma oportunidade crítica identificada.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

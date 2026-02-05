@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Gastos de Marketing{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-4 col-lg-5">
+        {# Card de Resumo de Gastos (Exemplo de Agregação) #}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Total Gasto por Mês</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Mês/Ano</th>
+                            <th>Total Gasto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for gasto in gastos_agregados %}
+                        <tr>
+                            <td>{{ gasto.mes }}/{{ gasto.ano }}</td>
+                            <td>R$ {{ gasto.total_mensal|floatformat:2 }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="2">Nenhum gasto registrado.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <p class="small mt-3 text-muted">Estes dados são usados para calcular o Custo de Aquisição de Clientes (CAC) em relatórios.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Gastos Detalhados por Canal</h6>
+                <button class="btn btn-primary btn-sm"
+                        hx-get="{% url 'marketing:gastomarketing_create' %}"
+                        hx-target="#htmx-modal-content"
+                        data-toggle="modal"
+                        data-target="#htmx-modal"
+                >
+                    <i class="fas fa-plus fa-sm text-white-50"></i> Novo Gasto
+                </button>
+            </div>
+            
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Canal</th>
+                                <th>Mês</th>
+                                <th>Ano</th>
+                                <th>Valor Gasto</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gasto-list-body">
+                            {% for gasto in gastos %}
+                            <tr>
+                                <td>{{ gasto.canal.nome }}</td>
+                                <td>{{ gasto.mes }}</td>
+                                <td>{{ gasto.ano }}</td>
+                                <td>R$ {{ gasto.valor_gasto|floatformat:2 }}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" 
+                                            hx-get="{% url 'marketing:gastomarketing_update' gasto.pk %}" 
+                                            hx-target="#htmx-modal-content" 
+                                            data-toggle="modal" 
+                                            data-target="#htmx-modal">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">Nenhum gasto de marketing registrado.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/logout_modal.html' %} 
+{% endblock content %}

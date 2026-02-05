@@ -1,0 +1,57 @@
+<div class="modal-header bg-primary text-white border-0 shadow-sm">
+    <h5 class="modal-title fw-bold">
+        <i class="ri-building-line me-2"></i>Novo Fornecedor
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
+
+<form hx-post="{% url 'crm:fornecedor_modal_create' %}" hx-target="#secondary-modal-content">
+    {% csrf_token %}
+    <div class="modal-body p-4">
+        <div class="mb-4">
+            <label class="form-label fw-bold small text-uppercase">CNPJ (Somente números)</label>
+            <div class="input-group input-group-merge border-primary">
+                {{ form.cnpj }}
+                <button class="btn btn-outline-primary" type="button" id="btn-consulta-cnpj-modal">
+                    <i class="ri-search-eye-line"></i> Consultar
+                </button>
+            </div>
+            <div id="cnpj-status" class="form-text small mt-1"></div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold small text-uppercase">Razão Social</label>
+            {{ form.razao_social }}
+        </div>
+    </div>
+    <div class="modal-footer border-0">
+        <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold shadow">
+            CADASTRAR FORNECEDOR
+        </button>
+    </div>
+</form>
+
+<script>
+    document.getElementById('btn-consulta-cnpj-modal').addEventListener('click', function() {
+        const cnpjInput = document.querySelector('#secondary-modal input[name="cnpj"]');
+        let cnpj = cnpjInput.value.replace(/\D/g, '');
+        const btn = this;
+        
+        if(cnpj.length === 14) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            
+            fetch(`https://publica.cnpj.ws/cnpj/${cnpj}`)
+                .then(r => r.json())
+                .then(data => {
+                    if(data.razao_social) {
+                        document.querySelector('#secondary-modal input[name="razao_social"]').value = data.razao_social;
+                    }
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ri-search-eye-line"></i> Consultar';
+                });
+        }
+    });
+</script>

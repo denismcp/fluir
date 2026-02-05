@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Detalhes: {{ produto.nome }}</h1>
+        <a href="{% url 'produtos:produto_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Voltar à Lista
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Informações Gerais</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Código (SKU):</strong> {{ produto.codigo_interno }}</p>
+                    <p><strong>EAN/GTIN:</strong> {{ produto.ean_gtin|default:"Não informado" }}</p>
+                    <p><strong>Categoria:</strong> {{ produto.categoria.nome }}</p>
+                    <p><strong>Tipo:</strong> {{ produto.get_tipo_produto_display }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Preço de Venda:</strong> R$ {{ produto.preco_venda_padrao }}</p>
+                    <p><strong>Custo Padrão:</strong> R$ {{ produto.custo_padrao }}</p>
+                    <p><strong>Markup:</strong> {{ produto.markup_padrao }}%</p>
+                    <p><strong>Status:</strong> 
+                        {% if produto.ativo %}
+                            <span class="badge badge-success">Ativo</span>
+                        {% else %}
+                            <span class="badge badge-danger">Inativo</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <hr>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h5>Descrição Curta</h5>
+                    <p>{{ produto.descricao_curta|linebreaks|default:"Sem descrição disponível." }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

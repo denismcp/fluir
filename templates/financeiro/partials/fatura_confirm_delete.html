@@ -1,0 +1,53 @@
+{% load humanize %}
+<div class="modal-header bg-danger text-white border-0 py-3" style="border-radius: 28px 28px 0 0;">
+    <h5 class="modal-title font-weight-bold">
+        <i class="fas fa-exclamation-triangle mr-2"></i> Confirmar Exclusão
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form hx-post="{% url 'financeiro:fatura_delete' object.pk %}" 
+      hx-on::after-request="if(event.detail.successful) { $('#htmx-modal').modal('hide'); window.location.reload(); }">
+    {% csrf_token %}
+    
+    <div class="modal-body text-center py-5 bg-light">
+        <div class="mb-4">
+            <div class="bg-soft-danger rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 80px; height: 80px; background-color: #fef2f2;">
+                <i class="fas fa-trash-alt fa-3x text-danger opacity-50"></i>
+            </div>
+        </div>
+        
+        <p class="h4 mb-3 text-gray-900 font-weight-900">Remover Fatura?</p>
+        
+        <p class="text-muted mb-0">
+            Você está prestes a excluir permanentemente o documento:
+        </p>
+        <p class="font-weight-bold text-danger h5 mt-1">{{ object.numero_documento|default:"Sem Número" }}</p>
+        
+        <div class="d-flex justify-content-center mt-4">
+            <div class="px-4 py-2 bg-white border rounded-pill shadow-sm">
+                <span class="small text-muted font-weight-bold">VALOR DO TÍTULO: </span>
+                <span class="small font-weight-900 text-dark">R$ {{ object.valor_original|floatformat:2|intcomma }}</span>
+            </div>
+        </div>
+
+        <div class="alert alert-warning small mb-0 mt-4 mx-3 border-0 shadow-sm rounded-12 text-left">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle fa-2x mr-3 text-warning opacity-75"></i>
+                <div>
+                    <strong class="d-block">Atenção:</strong>
+                    Esta ação removerá o registro do fluxo de caixa e atualizará seus indicadores. Esta operação não pode ser desfeita.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer bg-white border-0 justify-content-center pb-5">
+        <button type="button" class="btn btn-link text-muted font-weight-800 text-decoration-none mr-3" data-dismiss="modal">DESISTIR</button>
+        <button type="submit" class="btn btn-danger rounded-pill px-5 py-2 shadow-lg font-weight-900 border-0">
+            <i class="fas fa-trash-alt mr-2"></i>SIM, EXCLUIR AGORA
+        </button>
+    </div>
+</form>

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Catálogo de Serviços{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">{{ page_heading }}</h6>
+                <button class="btn btn-primary btn-sm"
+                        hx-get="{% url 'servicos:servico_create' %}"
+                        hx-target="#htmx-modal-content"
+                        data-toggle="modal"
+                        data-target="#htmx-modal"
+                >
+                    <i class="fas fa-plus fa-sm text-white-50"></i> Novo Serviço
+                </button>
+            </div>
+            
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Nome do Serviço</th>
+                                <th>Cód. Serviço</th>
+                                <th>Categoria</th>
+                                <th>Tipo</th>
+                                <th>Preço Padrão</th>
+                                <th>Unidade</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="servico-list-body">
+                            {# Loop de dados de serviços injetado via Django #}
+                            {% for servico in servicos %}
+                            <tr>
+                                <td><a href="{% url 'servicos:servico_detail' servico.pk %}">{{ servico.nome }}</a></td>
+                                <td>{{ servico.codigo_servico|default:"N/A" }}</td>
+                                <td>{{ servico.categoria.nome|default:"Sem Categoria" }}</td>
+                                <td>{{ servico.get_tipo_servico_display }}</td>
+                                <td>R$ {{ servico.preco_unitario_padrao|floatformat:2 }}</td>
+                                <td>{{ servico.unidade_medida }}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" 
+                                            hx-get="{% url 'servicos:servico_update' servico.pk %}" 
+                                            hx-target="#htmx-modal-content" 
+                                            data-toggle="modal" 
+                                            data-target="#htmx-modal">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" 
+                                            hx-get="{% url 'servicos:servico_delete' servico.pk %}" 
+                                            hx-target="#htmx-modal-content" 
+                                            data-toggle="modal" 
+                                            data-target="#htmx-modal">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">Nenhum serviço cadastrado.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/logout_modal.html' %} 
+{% endblock content %}

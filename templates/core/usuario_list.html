@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Gestão de Usuários e Vendedores | Fluir{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 px-2">
+        <div>
+            <h1 class="h3 mb-1 text-gray-800 font-weight-bold">Controle de Acessos</h1>
+            <p class="text-muted small">Gerenciamento global de usuários, vendedores e permissões</p>
+        </div>
+        <div>
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm font-weight-bold"
+                    style="background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%); border: none; height: 45px;"
+                    hx-get="{% url 'tc_core:usuario_create' %}" 
+                    hx-target="#htmx-modal-content"
+                    data-toggle="modal" 
+                    data-target="#htmx-modal">
+                <i class="fas fa-user-plus mr-2"></i>Novo Usuário
+            </button>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm rounded-15 border-left-primary">
+                <div class="card-body p-3">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total de Usuários</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ usuarios.count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-15 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="px-4 py-3 border-0">Usuário / Nome</th>
+                            <th class="py-3 border-0">E-mail</th>
+                            <th class="py-3 border-0 text-center">Departamento</th>
+                            <th class="py-3 border-0 text-center">Regra / Papel</th>
+                            <th class="py-3 border-0 text-center">Comissão</th>
+                            <th class="py-3 border-0 text-center">Status</th>
+                            <th class="px-4 py-3 border-0 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        {% for user in usuarios %}
+                        <tr style="cursor: pointer;" 
+                            hx-get="{% url 'tc_core:usuario_update' user.pk %}" 
+                            hx-target="#htmx-modal-content" 
+                            hx-swap="innerHTML"
+                            data-toggle="modal" 
+                            data-target="#htmx-modal">
+                            
+                            <td class="px-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-soft-primary text-primary d-flex align-items-center justify-content-center mr-3" style="width: 35px; height: 35px; font-weight: bold;">
+                                        {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+                                    </div>
+                                    <div>
+                                        <div class="font-weight-bold text-dark">{{ user.get_full_name|default:user.username }}</div>
+                                        <small class="text-muted">@{{ user.username }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            
+                            <td class="text-center">
+                                <span class="badge badge-soft-info px-3 py-2 rounded-pill font-weight-bold text-uppercase" style="font-size: 0.65rem;">
+                                    <i class="fas fa-sitemap mr-1"></i>{{ user.get_departamento_display|default:"Geral" }}
+                                </span>
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge badge-light px-3 py-2 text-dark font-weight-bold" style="border-radius: 6px;">
+                                    <i class="fas fa-tag mr-1 opacity-5"></i>{{ user.regra.nome|default:"Sem Regra" }}
+                                </span>
+                            </td>
+                            <td class="text-center font-weight-bold text-success">
+                                {{ user.taxa_comissao }}%
+                            </td>
+                            <td class="text-center">
+                                {% if user.is_active %}
+                                <span class="badge badge-success-soft text-success px-3 py-2 rounded-pill font-weight-bold">ATIVO</span>
+                                {% else %}
+                                <span class="badge badge-danger-soft text-danger px-3 py-2 rounded-pill font-weight-bold">INATIVO</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 text-center">
+                                <div class="btn btn-sm btn-white border-light text-primary shadow-none">
+                                    <i class="fas fa-edit"></i>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rounded-15 { border-radius: 15px !important; }
+    .border-left-primary { border-left: 4px solid #5e72e4 !important; }
+    .bg-soft-primary { background-color: #e7eafb; }
+    
+    /* Cores Suaves para Badges e Estados */
+    .badge-success-soft { background-color: #e8f9f1; color: #2dce89; }
+    .badge-danger-soft { background-color: #fee7e9; color: #f5365c; }
+    .badge-soft-info { background-color: #e3f2fd; color: #007bff; border: 1px solid #bbdefb; }
+    
+    .table-hover tbody tr:hover { 
+        background-color: #f8f9fe; 
+        transition: all 0.2s ease;
+    }
+
+    /* Ajuste para ícones dentro de badges */
+    .badge i {
+        font-size: 0.7rem;
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}

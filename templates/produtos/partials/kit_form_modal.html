@@ -1,0 +1,139 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title">
+        {% if object.pk %}<i class="fas fa-edit mr-2"></i>Editar Kit{% else %}<i class="fas fa-plus mr-2"></i>Novo Kit{% endif %}
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+</div>
+
+<form hx-post="{{ request.path }}" hx-target="#htmx-modal-content" id="kit-form-main">
+    {% csrf_token %}
+    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        {{ form|crispy }}
+        
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Custo Total</div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800" id="total-custo">R$ 0,00</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Venda Total</div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800" id="total-venda">R$ 0,00</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Lucro Bruto</div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800" id="total-lucro">R$ 0,00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h6 class="font-weight-bold text-gray-800 border-bottom pb-2 mb-3">Composição do Kit</h6>
+        {{ itens.management_form }}
+        
+        <div id="item-kit-container">
+            {% for item_form in itens %}
+                <div class="item-kit-row row mb-2 align-items-end border-bottom pb-3 mb-3">
+                    <div class="col-md-7">{{ item_form.produto|as_crispy_field }}</div>
+                    <div class="col-md-3">{{ item_form.quantidade|as_crispy_field }}</div>
+                    <div class="col-md-2 mb-3 text-right">
+                        {% if item_form.instance.pk %}
+                            <div class="custom-control custom-checkbox">
+                                {{ item_form.DELETE }}
+                                <label class="text-danger small" for="{{ item_form.DELETE.id_for_label }}">Excluir</label>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% for hidden in item_form.hidden_fields %}{{ hidden }}{% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <button type="button" class="btn btn-outline-info btn-sm mt-2" onclick="adicionarLinhaItem(this)">
+            <i class="fas fa-plus mr-1"></i> Adicionar outro produto
+        </button>
+    </div>
+    
+    <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary shadow-sm"><i class="fas fa-save mr-1"></i> Salvar Kit</button>
+    </div>
+</form>
+
+<script>
+    // Banco de dados local para cálculo instantâneo
+    var precosKit = {
+        {% for p in produtos_com_preco %}
+            "{{ p.id }}": { custo: {{ p.custo_padrao|stringformat:".2f" }}, venda: {{ p.preco_venda_padrao|stringformat:".2f" }} },
+        {% endfor %}
+    };
+
+    function calcularResumoFinanceiro() {
+        var cTotal = 0;
+        var vTotal = 0;
+        
+        document.querySelectorAll('.item-kit-row').forEach(function(row) {
+            var pId = row.querySelector('select[name$="-produto"]').value;
+            var qtd = parseFloat(row.querySelector('input[name$="-quantidade"]').value) || 0;
+            var del = row.querySelector('input[name$="-DELETE"]')?.checked || false;
+
+            if (pId && !del && precosKit[pId]) {
+                cTotal += precosKit[pId].custo * qtd;
+                vTotal += precosKit[pId].venda * qtd;
+            }
+        });
+
+        var lucro = vTotal - cTotal;
+        var margem = vTotal > 0 ? (lucro / vTotal * 100) : 0;
+
+        document.getElementById('total-custo').innerText = "R$ " + cTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        document.getElementById('total-venda').innerText = "R$ " + vTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        document.getElementById('total-lucro').innerText = "R$ " + lucro.toLocaleString('pt-BR', {minimumFractionDigits: 2}) + " (" + margem.toFixed(1) + "%)";
+    }
+
+    function adicionarLinhaItem(btn) {
+        var container = document.getElementById('item-kit-container');
+        var totalForms = document.querySelector('input[name="itemkit_set-TOTAL_FORMS"]');
+        var count = parseInt(totalForms.value);
+        
+        var rows = container.querySelectorAll('.item-kit-row');
+        var newRow = rows[0].cloneNode(true);
+        
+        // Atualiza índices de 0 para o novo número
+        newRow.innerHTML = newRow.innerHTML.replace(/-0-/g, "-" + count + "-");
+        
+        // Limpa campos
+        newRow.querySelectorAll('input, select').forEach(function(input) {
+            if (input.type !== 'hidden' && input.type !== 'checkbox') input.value = '';
+            if (input.name.includes('-id')) input.value = '';
+            if (input.type === 'checkbox') input.checked = false;
+        });
+
+        // Remove o botão excluir da linha nova clonada
+        var delCheck = newRow.querySelector('.custom-control.custom-checkbox');
+        if (delCheck) delCheck.remove();
+
+        container.appendChild(newRow);
+        totalForms.value = count + 1;
+        calcularResumoFinanceiro();
+    }
+
+    // Monitora mudanças no formulário
+    var formKit = document.getElementById('kit-form-main');
+    formKit.addEventListener('input', calcularResumoFinanceiro);
+    formKit.addEventListener('change', calcularResumoFinanceiro);
+
+    // Inicia o cálculo
+    calcularResumoFinanceiro();
+</script>

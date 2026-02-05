@@ -1,0 +1,65 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-gradient-primary text-white border-0">
+    <h5 class="modal-title font-weight-bold" id="htmx-modal-label">
+        <i class="fas fa-edit mr-2"></i>
+        {% if form.instance.pk %}Editar Oportunidade{% else %}Nova Oportunidade{% endif %}
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form hx-post="{{ request.path }}" hx-target="#htmx-modal-content" class="bg-light">
+    {% csrf_token %}
+    <div class="modal-body p-4">
+        
+        <div class="card shadow-sm border-0 mb-4 rounded-15">
+            <div class="card-body p-4">
+                <h6 class="text-primary font-weight-bold mb-4 small text-uppercase" style="letter-spacing: 1px;">
+                    <i class="fas fa-info-circle mr-2"></i>Detalhes da Oportunidade
+                </h6>
+                
+                {# Renderização automática de todos os campos existentes no formulário #}
+                {# Isso evita o erro de 'inexistent field' #}
+                {{ form|crispy }}
+                
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer border-0 bg-white">
+        <button type="button" class="btn btn-link text-muted font-weight-bold" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary px-5 shadow-sm rounded-pill font-weight-bold">
+            <i class="fas fa-save mr-2"></i>Salvar Oportunidade
+        </button>
+    </div>
+</form>
+
+<style>
+    /* Ajustes para manter o padrão Premium mesmo com renderização automática */
+    .rounded-15 { border-radius: 15px !important; }
+    .modal-content { border: none; border-radius: 20px; overflow: hidden; }
+    .bg-gradient-primary { background: linear-gradient(135deg, #5e72e4 0, #825ee4 100%) !important; }
+    
+    /* Estilização dos campos do Crispy para o padrão do seu ERP */
+    .form-control, .form-select, .select2-container--bootstrap-5 {
+        border-radius: 8px !important;
+        border: 1px solid #e9ecef !important;
+        background-color: #f8f9fc !important;
+        padding: 0.6rem 0.75rem !important;
+    }
+    .form-control:focus {
+        background-color: #fff !important;
+        border-color: #5e72e4 !important;
+        box-shadow: 0 0 8px rgba(94,114,228,0.15) !important;
+    }
+    label {
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        color: #8898aa !important;
+        text-uppercase: uppercase !important;
+        margin-bottom: 0.5rem !important;
+    }
+</style>

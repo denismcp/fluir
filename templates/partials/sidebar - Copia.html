@@ -1,0 +1,94 @@
+{% load static %}
+<style>
+    /* DESIGN SYSTEM SIDEBAR ULTRA PREMIUM */
+    #accordionSidebar { background: linear-gradient(180deg, #1a1c23 0%, #242a38 100%) !important; box-shadow: 4px 0 10px rgba(0,0,0,0.1); border: none; }
+    .sidebar-brand { padding: 1.5rem 1rem !important; height: auto !important; }
+    .sidebar-logo-img { max-width: 100%; height: auto; max-height: 45px; object-fit: contain; }
+    .nav-item .nav-link { padding: 0.85rem 1.5rem !important; margin: 0.2rem 0.8rem; border-radius: 10px; color: rgba(255,255,255,0.6) !important; transition: 0.2s; }
+    .nav-item.active .nav-link { background: linear-gradient(90deg, #5e72e4 0%, #825ee4 100%) !important; color: #fff !important; font-weight: 600; }
+    .sidebar-heading { color: rgba(255,255,255,0.2) !important; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.65rem !important; margin-top: 1.5rem; padding: 0 1.8rem !important; }
+    .collapse-inner { background: rgba(0,0,0,0.2) !important; border-radius: 10px; margin: 0 0.8rem 0.5rem; border: 1px solid rgba(255,255,255,0.05); }
+    .collapse-item { color: rgba(255,255,255,0.5) !important; font-size: 0.85rem !important; padding: 0.6rem 1rem !important; display: block; }
+    .collapse-item:hover, .collapse-item.active { color: #fff !important; text-decoration: none; background: rgba(255,255,255,0.1); border-radius: 8px; }
+</style>
+
+<ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'tc_core:dashboard' %}">
+        <img src="{% static 'img/logohorizontal.jpg' %}" alt="Logo" class="sidebar-logo-img">
+    </a>
+
+    <li class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <a class="nav-link" href="{% url 'tc_core:dashboard' %}"><i class="fas fa-th-large"></i><span>Dashboard Global</span></a>
+    </li>
+
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-heading">Comercial & Vendas</div>
+    <li class="nav-item {% if request.resolver_match.namespace == 'crm' %}active{% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCRM"><i class="fas fa-funnel-dollar"></i><span>Vendas (CRM)</span></a>
+        <div id="collapseCRM" class="collapse {% if request.resolver_match.namespace == 'crm' %}show{% endif %}" data-parent="#accordionSidebar">
+            <div class="collapse-inner py-2">
+                <a class="collapse-item" href="{% url 'crm:kanban' %}">Pipeline / Kanban</a>
+                <a class="collapse-item" href="{% url 'crm:oportunidade_list' %}">Oportunidades</a>
+                <a class="collapse-item" href="{% url 'crm:cliente_list' %}">Clientes / Leads</a>
+                <a class="collapse-item" href="{% url 'crm:proposta_list' %}">Propostas Comerciais</a>
+            </div>
+        </div>
+    </li>
+
+    <div class="sidebar-heading">Financeiro & Fluxo</div>
+    <li class="nav-item {% if request.resolver_match.namespace == 'financeiro' %}active{% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFinanceiro"><i class="fas fa-wallet"></i><span>Gestão Financeira</span></a>
+        <div id="collapseFinanceiro" class="collapse {% if request.resolver_match.namespace == 'financeiro' %}show{% endif %}" data-parent="#accordionSidebar">
+            <div class="collapse-inner py-2">
+                <a class="collapse-item" href="{% url 'financeiro:dashboard' %}">Fluxo de Caixa</a>
+                
+                <div class="sidebar-heading px-3 py-1 mt-2 text-primary" style="font-size: 0.6rem !important;">CONTAS A RECEBER</div>
+                <a class="collapse-item" href="{% url 'financeiro:fatura_list' %}">Gestão de Faturas</a>
+                <a class="collapse-item" href="{% url 'financeiro:fatura_planilha' %}"><i class="fas fa-table mr-1"></i>Lançamento Rápido</a>
+                
+                <div class="sidebar-heading px-3 py-1 mt-2 text-danger" style="font-size: 0.6rem !important;">CONTAS A PAGAR</div>
+                <a class="collapse-item" href="{% url 'financeiro:despesa_list' %}">Gestão de Despesas</a>
+                <a class="collapse-item" href="{% url 'financeiro:despesa_planilha' %}"><i class="fas fa-table mr-1"></i>Lançamento Rápido</a>
+                
+                <hr class="mx-3 my-1 border-light opacity-1">
+                <a class="collapse-item font-weight-bold text-primary" href="#" hx-get="{% url 'financeiro:importar_xml' %}" hx-target="#htmx-modal-content" data-toggle="modal" data-target="#htmx-modal">
+                    <i class="fas fa-file-import mr-1"></i>Importar NF (XML)
+                </a>
+            </div>
+        </div>
+    </li>
+
+    <div class="sidebar-heading">Operacional</div>
+    <li class="nav-item {% if request.resolver_match.namespace == 'contratos' %}active{% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseContratos"><i class="fas fa-file-signature"></i><span>Contratos</span></a>
+        <div id="collapseContratos" class="collapse {% if request.resolver_match.namespace == 'contratos' %}show{% endif %}" data-parent="#accordionSidebar">
+            <div class="collapse-inner py-2">
+                <a class="collapse-item" href="{% url 'contratos:contrato_list' %}">Gestão de Contratos</a>
+            </div>
+        </div>
+    </li>
+
+    <li class="nav-item {% if request.resolver_match.namespace == 'produtos' %}active{% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseEstoque"><i class="fas fa-boxes"></i><span>Catálogo & Stock</span></a>
+        <div id="collapseEstoque" class="collapse {% if request.resolver_match.namespace == 'produtos' %}show{% endif %}" data-parent="#accordionSidebar">
+            <div class="collapse-inner py-2">
+                <a class="collapse-item" href="{% url 'produtos:produto_list' %}">Produtos</a>
+                <a class="collapse-item" href="{% url 'produtos:servico_list' %}">Serviços</a>
+                <a class="collapse-item" href="{% url 'produtos:kit_list' %}">Kits de Materiais</a>
+                <a class="collapse-item" href="{% url 'produtos:fornecedor_list' %}">Fornecedores</a>
+            </div>
+        </div>
+    </li>
+
+    <hr class="sidebar-divider d-none d-md-block">
+
+    <li class="nav-item">
+        <form action="/logout/" method="post">
+            {% csrf_token %}
+            <button type="submit" class="nav-link border-0 bg-transparent text-left w-100" style="color: #f6c23e !important;">
+                <i class="fas fa-sign-out-alt"></i><span>Sair do Sistema</span>
+            </button>
+        </form>
+    </li>
+</ul>

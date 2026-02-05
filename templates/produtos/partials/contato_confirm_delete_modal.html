@@ -1,0 +1,25 @@
+<div class="modal-header bg-danger text-white">
+    <h5 class="modal-title">
+        <i class="fas fa-trash-alt mr-2"></i>Confirmar Exclusão
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<div class="modal-body text-center p-4">
+    <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+    <p class="mb-1">Deseja excluir permanentemente o contato adicional:</p>
+    <h5 class="font-weight-bold text-gray-900">{{ contato.nome }}</h5>
+    <p class="text-muted small">Esta ação não poderá ser desfeita e removerá os vínculos de categorias deste contato.</p>
+</div>
+
+<div class="modal-footer bg-light">
+    <button type="button" class="btn btn-secondary shadow-sm" data-dismiss="modal">Cancelar</button>
+    <form hx-post="{% url 'produtos:fornecedor_contato_delete' contato.pk %}" hx-target="#htmx-modal-content">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger px-4 shadow">
+            <i class="fas fa-trash-alt mr-1"></i> Sim, Excluir Contato
+        </button>
+    </form>
+</div>

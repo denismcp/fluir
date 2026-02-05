@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Fluxo de Caixa a Vencer{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-xl-12 mb-4">
+        <p class="text-muted">Análise de contas a receber e a pagar com vencimento nos próximos 7 dias. O saldo projetado é crucial para o planejamento de caixa.</p>
+    </div>
+</div>
+
+<div class="row">
+    {# KPI: Saldo CR #}
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            CR a Receber (7 dias)
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ total_cr|intcomma }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-arrow-circle-down fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# KPI: Saldo CP #}
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            CP a Pagar (7 dias)
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ total_cp|intcomma }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-arrow-circle-up fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# KPI: Saldo Líquido #}
+    {% with saldo_liquido=total_cr|sub:total_cp %}
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-{% if saldo_liquido >= 0 %}success{% else %}danger{% endif %} shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-{% if saldo_liquido >= 0 %}success{% else %}danger{% endif %} text-uppercase mb-1">
+                            Saldo Líquido Projetado (7 dias)
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ saldo_liquido|intcomma }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-balance-scale fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+</div>
+
+<div class="row">
+    {# Tabela Contas a Receber #}
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-info">Contas a Receber (CR)</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Valor</th>
+                                <th>Vencimento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fatura in cr_vencer %}
+                            <tr>
+                                <td>{{ fatura.cliente.razao_social|default:"N/A" }}</td>
+                                <td>R$ {{ fatura.valor|floatformat:2|intcomma }}</td>
+                                <td>{{ fatura.data_vencimento|date:"d/m/Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">Nenhuma CR a vencer nos próximos 7 dias.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# Tabela Contas a Pagar #}
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-warning">Contas a Pagar (CP)</h6>
+            </div>
+            <div class="card-body">
+                 <div class="table-responsive">
+                    <table class="table table-sm" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Fornecedor</th>
+                                <th>Valor</th>
+                                <th>Vencimento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for despesa in cp_vencer %}
+                            <tr>
+                                <td>{{ despesa.fornecedor.razao_social|default:"N/A" }}</td>
+                                <td>R$ {{ despesa.valor|floatformat:2|intcomma }}</td>
+                                <td>{{ despesa.data_vencimento|date:"d/m/Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">Nenhuma CP a pagar nos próximos 7 dias.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/logout_modal.html' %} 
+{% endblock content %}

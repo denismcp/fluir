@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Contas a Pagar</h1>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary rounded-pill px-4 shadow-lg" 
+                    hx-get="{% url 'financeiro:despesa_create' %}" 
+                    hx-target="#htmx-modal-content">
+                <i class="fas fa-plus-circle mr-2"></i>Lançar Despesa
+            </button>
+        </div>
+    </div>
+
+    <div id="financeiro-content-container" 
+         hx-get="{% url 'financeiro:despesa_list' %}" 
+         hx-trigger="despesaAtualizada from:body" 
+         hx-target="#financeiro-content-container" 
+         hx-select="#financeiro-content-container"
+         hx-swap="innerHTML">
+        
+        <div class="row mb-4 text-center">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-12 bg-warning-soft text-warning p-3">
+                    <div class="text-xs font-weight-bold text-uppercase">Vencendo Hoje</div>
+                    <div class="h5 mb-0 font-weight-bold">R$ {{ vencendo_hoje_valor|floatformat:2|intcomma }} ({{ vencendo_hoje_qtd }})</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-12 bg-danger-soft text-danger p-3">
+                    <div class="text-xs font-weight-bold text-uppercase">Vencidas (Atraso)</div>
+                    <div class="h5 mb-0 font-weight-bold">R$ {{ vencidas_valor|floatformat:2|intcomma }} ({{ vencidas_qtd }})</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-12 bg-primary-soft text-primary p-3">
+                    <div class="text-xs font-weight-bold text-uppercase">Próximos 7 Dias</div>
+                    <div class="h5 mb-0 font-weight-bold">R$ {{ prox_7_valor|floatformat:2|intcomma }} ({{ prox_7_qtd }})</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 rounded-15 overflow-hidden">
+            <div class="table-responsive" id="lista-despesas">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="px-4 py-3">Fantasia / Fornecedor</th>
+                            <th>Nº Documento</th>
+                            <th class="text-right">Valor Bruto</th>
+                            <th class="text-center">Vencimento</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-right">Juros/Multa</th>
+                            <th class="px-4 text-center">Gestão</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        {% for despesa in despesas %}
+                        <tr id="despesa-row-{{ despesa.pk }}" style="cursor: pointer;" 
+                            hx-get="{% url 'financeiro:despesa_update' despesa.pk %}" 
+                            hx-target="#htmx-modal-content" data-toggle="modal" data-target="#htmx-modal">
+                            
+                            <td class="px-4 font-weight-bold text-dark">{{ despesa.fornecedor.razao_social|default:despesa.descricao|truncatechars:35 }}</td>
+                            <td>{{ despesa.numero_documento|default:"-" }}</td>
+                            <td class="text-right font-weight-bold">R$ {{ despesa.valor_original|floatformat:2|intcomma }}</td>
+                            <td class="text-center">{{ despesa.data_vencimento|date:"d/m/Y" }}</td>
+                            <td class="text-center">
+                                {% if despesa.pago %}
+                                    <span class="badge rounded-pill badge-success px-3 py-2">LIQUIDADO</span>
+                                {% elif despesa.data_vencimento == hoje %}
+                                    <span class="badge rounded-pill badge-info bg-info text-white px-3 py-2">VENCE HOJE</span>
+                                {% elif despesa.status == 'atrasado' %}
+                                    <span class="badge rounded-pill badge-danger px-3 py-2">EM ATRASO</span>
+                                {% else %}
+                                    <span class="badge rounded-pill badge-warning text-dark px-3 py-2">AGUARDANDO</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-right {% if despesa.valor_juros or despesa.valor_multa %}text-danger font-weight-bold{% else %}text-muted{% endif %}">
+                                R$ {{ despesa.valor_juros|add:despesa.valor_multa|floatformat:2|intcomma }}
+                            </td>
+                            <td class="px-4 text-center" onclick="event.stopPropagation();">
+                                <div class="btn-group shadow-sm rounded-8 overflow-hidden">
+                                    <button class="btn btn-sm btn-white border-light" 
+                                            hx-get="{% url 'financeiro:despesa_update' despesa.pk %}" 
+                                            hx-target="#htmx-modal-content">
+                                        <i class="fas fa-edit text-primary"></i>
+                                    </button>
+
+                                    <button class="btn btn-sm btn-white border-light" 
+                                            hx-get="{% url 'financeiro:despesa_delete' despesa.pk %}" 
+                                            hx-target="#htmx-modal-content">
+                                        <i class="fas fa-trash text-danger"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">Nenhum lançamento encontrado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div> </div>
+    
+{% endblock %}

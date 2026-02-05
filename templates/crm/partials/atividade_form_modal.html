@@ -1,0 +1,19 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-info text-white">
+    <h5 class="modal-title"><i class="fas fa-comment-dots mr-2"></i>Registrar Atividade</h5>
+    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+</div>
+
+<form hx-post="{{ request.path }}" hx-target="#htmx-modal-content">
+    {% csrf_token %}
+    <div class="modal-body">
+        {{ form|crispy }}
+    </div>
+    <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-info shadow-sm">
+            <i class="fas fa-save mr-1"></i> Salvar Histórico
+        </button>
+    </div>
+</form>

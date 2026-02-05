@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ page_heading }}</h1>
+        <button class="btn btn-primary btn-sm shadow-sm" 
+                hx-get="{% url 'produtos:fornecedor_create' %}" 
+                hx-target="#htmx-modal-content" 
+                data-toggle="modal" data-target="#htmx-modal">
+            <i class="fas fa-truck fa-sm text-white-50 mr-1"></i> Novo Fornecedor
+        </button>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Parceiros e Fornecedores Cadastrados</h6>
+            
+            <form method="GET" class="form-inline ml-auto">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control form-control-sm bg-light border-0 small" 
+                           placeholder="Buscar por nome, CNPJ ou categoria..." 
+                           value="{{ search_term }}" style="width: 300px;">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary btn-sm" type="submit">
+                            <i class="fas fa-search fa-sm"></i>
+                        </button>
+                        {% if search_term %}
+                            <a href="{% url 'produtos:fornecedor_list' %}" class="btn btn-secondary btn-sm" title="Limpar Busca">
+                                <i class="fas fa-times fa-sm"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Fornecedor / Razão Social</th>
+                            <th>CNPJ</th>
+                            <th>Categorias</th>
+                            <th>Telefone / E-mail</th>
+                            <th class="text-center">Avaliação (Preço/Pont.)</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for forn in fornecedores %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'produtos:fornecedor_detail' forn.pk %}" class="text-decoration-none">
+                                    <strong class="text-primary">{{ forn.nome_fantasia|default:forn.razao_social }}</strong>
+                                </a>
+                                {% if forn.e_distribuidor %}
+                                    <span class="badge badge-info ml-1">Distribuidor</span>
+                                {% endif %}
+                                <br><small class="text-muted">{{ forn.razao_social }}</small>
+                            </td>
+
+                            <td><small class="text-muted">{{ forn.cnpj }}</small></td>
+
+                            <td>
+                                {% for cat in forn.categorias_fornecidas.all|slice:":3" %}
+                                    <span class="badge badge-light border small">{{ cat.nome }}</span>
+                                {% empty %}
+                                    <span class="text-muted small italic">Nenhuma</span>
+                                {% endfor %}
+                            </td>
+
+                            <td>
+                                {% if forn.telefone %}
+                                    <div class="d-flex justify-content-between align-items-center mb-1 small">
+                                        <span><i class="fas fa-phone fa-xs mr-1 text-muted"></i> {{ forn.telefone }}</span>
+                                        <a href="https://wa.me/55{{ forn.telefone|slugify }}" target="_blank" class="text-success ml-2" title="WhatsApp">
+                                            <i class="fab fa-whatsapp"></i>
+                                        </a>
+                                    </div>
+                                {% endif %}
+                                {% if forn.email %}
+                                    <div class="d-flex justify-content-between align-items-center small">
+                                        <span class="text-truncate" style="max-width: 120px;" title="{{ forn.email }}">
+                                            <i class="fas fa-envelope fa-xs mr-1 text-muted"></i> {{ forn.email }}
+                                        </span>
+                                        <div class="ml-2 d-flex">
+                                            <a href="mailto:{{ forn.email }}" target="_blank" class="text-primary mr-2" title="Outlook">
+                                                <i class="fas fa-envelope-open-text"></i>
+                                            </a>
+                                            <a href="https://teams.microsoft.com/l/chat/0/0?users={{ forn.email }}" target="_blank" class="text-info" title="Teams">
+                                                <i class="fab fa-microsoft"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-center small">
+                                <div class="mb-1" title="Nota Preço: {{ forn.avaliacao_preco }}/5">
+                                    <span class="text-muted mr-1">Preço:</span>
+                                    {% for i in "12345" %}
+                                        <i class="fas fa-star {% if forn.avaliacao_preco >= forloop.counter %}text-warning{% else %}text-gray-300{% endif %}"></i>
+                                    {% endfor %}
+                                </div>
+                                <div title="Nota Pontualidade: {{ forn.avaliacao_pontualidade }}/5">
+                                    <span class="text-muted mr-1">Pont.:</span>
+                                    {% for i in "12345" %}
+                                        <i class="fas fa-star {% if forn.avaliacao_pontualidade >= forloop.counter %}text-warning{% else %}text-gray-300{% endif %}"></i>
+                                    {% endfor %}
+                                </div>
+                            </td>
+
+                            <td class="text-center">
+                                <div class="btn-group shadow-sm">
+                                    <button class="btn btn-warning btn-sm" title="Editar"
+                                            hx-get="{% url 'produtos:fornecedor_update' forn.pk %}"
+                                            hx-target="#htmx-modal-content"
+                                            data-toggle="modal" data-target="#htmx-modal">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" title="Excluir"
+                                            hx-get="{% url 'produtos:fornecedor_delete' forn.pk %}"
+                                            hx-target="#htmx-modal-content"
+                                            data-toggle="modal" data-target="#htmx-modal">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">Nenhum fornecedor encontrado para esta busca.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

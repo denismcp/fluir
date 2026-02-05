@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas {% if 'servico' in request.path %}fa-concierge-bell{% else %}fa-box{% endif %} mr-2 text-primary"></i>
+            Gestão de {% if 'servico' in request.path %}Serviços{% else %}Produtos{% endif %} (Planilha)
+        </h1>
+        
+        <div class="btn-group shadow-sm">
+            <a href="{% url 'produtos:baixar_template' %}" class="btn btn-sm btn-light border">
+                <i class="fas fa-file-download mr-1"></i> Template
+            </a>
+            <button class="btn btn-sm btn-info border" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-upload mr-1"></i> Importar
+            </button>
+            <div class="dropdown d-inline">
+                <button class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown">
+                    <i class="fas fa-download mr-1"></i> Exportar
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                    <a class="dropdown-item small" href="?export=xlsx"><i class="fas fa-file-excel mr-2 text-success"></i>Excel (.xlsx)</a>
+                    <a class="dropdown-item small" href="?export=csv"><i class="fas fa-file-csv mr-2 text-info"></i>CSV (.csv)</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form id="importForm" method="POST" enctype="multipart/form-data" action="{% url 'produtos:importar_arquivo' %}" style="display:none;">
+        {% csrf_token %}
+        <input type="file" id="fileInput" name="arquivo" onchange="this.form.submit()">
+    </form>
+
+    <div class="card shadow mb-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm table-hover mb-0" id="sheetTable">
+                    <thead class="bg-light text-dark small font-weight-bold text-center">
+                        <tr>
+                            <th width="50">ID</th>
+                            <th width="120">Código Interno</th>
+                            <th>Nome/Descrição do Item</th>
+                            <th width="120">Preço Venda</th>
+                            <th width="120">Modificado por</th>
+                            <th width="140">Modificado em</th>
+                            <th width="120">Criado por</th>
+                            <th width="140">Criado em</th>
+                        </tr>
+                        <tr class="bg-white filter-row">
+                            <th></th> <th><input type="text" class="form-control form-control-sm column-filter" placeholder="Filtrar Cód..."></th>
+                            <th><input type="text" class="form-control form-control-sm column-filter" placeholder="Filtrar Nome..."></th>
+                            <th><input type="text" class="form-control form-control-sm column-filter" placeholder="Preço..."></th>
+                            <th><input type="text" class="form-control form-control-sm column-filter" placeholder="Usuário..."></th>
+                            <th></th> <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        {% for item in itens %}
+                        <tr data-id="{{ item.id }}">
+                            <td class="bg-gray-100 text-center text-muted font-weight-bold">{{ item.id }}</td>
+                            <td contenteditable="true" data-field="codigo_interno" class="editable-cell text-center">
+                                {{ item.codigo_interno|default:"" }}
+                            </td>
+                            <td contenteditable="true" data-field="nome" class="editable-cell font-weight-bold">
+                                {{ item.nome }}
+                            </td>
+                            <td contenteditable="true" data-field="preco_venda_padrao" class="editable-cell text-right pr-2">
+                                {{ item.preco_venda_padrao|floatformat:2 }}
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge badge-info">{{ item.modificado_por.username|default:"---" }}</span>
+                            </td>
+                            <td class="text-center text-muted small">{{ item.atualizado_em|date:"d/m/Y H:i" }}</td>
+
+                            <td class="text-center">
+                                <span class="badge badge-light border">{{ item.criado_por.username|default:"---" }}</span>
+                            </td>
+                            <td class="text-center text-muted small">{{ item.criado_em|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .editable-cell { cursor: cell; transition: all 0.1s; }
+    .editable-cell:focus { 
+        outline: 2px solid #4e73df !important; 
+        background-color: #fff !important; 
+        box-shadow: 0 0 8px rgba(78,115,223,0.2);
+    }
+    .save-success { background-color: #d4edda !important; }
+    .save-error { background-color: #f8d7da !important; }
+    
+    /* Estilo dos Filtros */
+    .column-filter { font-size: 10px; padding: 2px 5px; height: auto; border-radius: 2px; border: 1px solid #e3e6f0; }
+    .filter-row th { padding: 5px !important; }
+</style>
+
+<script>
+// LÓGICA DE FILTROS POR COLUNA
+document.querySelectorAll('.column-filter').forEach((filterInput, index) => {
+    filterInput.addEventListener('keyup', function() {
+        const table = document.getElementById('sheetTable');
+        const rows = table.querySelector('tbody').rows;
+        const filterValue = this.value.toLowerCase();
+        
+        // O index aqui precisa ser ajustado se houver colunas sem filtro
+        // Neste caso, o primeiro input está na coluna 1 (índice real da TD)
+        const colIndex = index + 1; 
+
+        for (let row of rows) {
+            const cellText = row.cells[colIndex].textContent.toLowerCase();
+            row.style.display = cellText.includes(filterValue) ? '' : 'none';
+        }
+    });
+});
+
+// LÓGICA DE SALVAMENTO AUTOMÁTICO (Mantida conforme anterior)
+document.querySelectorAll('.editable-cell').forEach(cell => {
+    cell.addEventListener('focus', function() {
+        this.dataset.originalValue = this.innerText.trim();
+    });
+
+    cell.addEventListener('blur', function() {
+        const id = this.closest('tr').dataset.id;
+        const field = this.dataset.field;
+        const newValue = this.innerText.trim();
+
+        if (newValue === this.dataset.originalValue) return;
+
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('campo', field);
+        formData.append('valor', newValue);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch("{% url 'produtos:update_cell' %}", {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                this.classList.add('save-success');
+                setTimeout(() => this.classList.remove('save-success'), 1000);
+            } else {
+                this.innerText = this.dataset.originalValue;
+                alert("Erro: " + data.message);
+            }
+        });
+    });
+
+    cell.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); this.blur(); }
+    });
+});
+</script>
+{% endblock %}

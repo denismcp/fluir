@@ -1,0 +1,31 @@
+<div class="modal-header bg-danger text-white">
+    <h5 class="modal-title">
+        <i class="fas fa-exclamation-triangle mr-2"></i> Confirmar Exclusão
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form hx-post="{% url 'crm:proposta_delete' object.pk %}" hx-target="#htmx-modal-content">
+    {% csrf_token %}
+    <div class="modal-body text-center py-4">
+        <div class="mb-3">
+            <i class="fas fa-trash-alt fa-4x text-danger opacity-25"></i>
+        </div>
+        <p class="h5 mb-3 text-gray-800">Deseja remover este documento?</p>
+        <p>Você está prestes a excluir permanentemente a proposta: <br>
+           <strong class="text-danger">{{ object.id_proposta }}</strong>
+        </p>
+        <div class="alert alert-warning small mb-0">
+            <i class="fas fa-info-circle mr-1"></i>
+            Esta ação removerá todos os itens vinculados e não pode ser desfeita.
+        </div>
+    </div>
+    <div class="modal-footer bg-light justify-content-center">
+        <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Manter Proposta</button>
+        <button type="submit" class="btn btn-danger px-4 shadow-sm font-weight-bold">
+            Sim, Confirmar Exclusão
+        </button>
+    </div>
+</form>

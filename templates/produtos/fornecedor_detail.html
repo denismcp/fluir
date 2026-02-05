@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0 mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'produtos:fornecedor_list' %}">Fornecedores</a></li>
+                    <li class="breadcrumb-item active">{{ fornecedor.nome_fantasia|default:fornecedor.razao_social }}</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-industry mr-2 text-primary"></i>Detalhes do Fornecedor</h1>
+        </div>
+        <div>
+            <a href="{% url 'produtos:fornecedor_list' %}" class="btn btn-secondary btn-sm shadow-sm">
+                <i class="fas fa-arrow-left fa-sm mr-1"></i> Voltar
+            </a>
+            <button class="btn btn-primary btn-sm shadow-sm" 
+                    hx-get="{% url 'produtos:fornecedor_update' fornecedor.pk %}" 
+                    hx-target="#htmx-modal-content" 
+                    data-toggle="modal" data-target="#htmx-modal">
+                <i class="fas fa-edit fa-sm mr-1"></i> Editar Cadastro
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4 border-left-primary">
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="h5 font-weight-bold text-primary mb-1">{{ fornecedor.nome_fantasia|default:fornecedor.razao_social }}</div>
+                        <div class="text-xs font-weight-bold text-uppercase mb-1 text-muted">{{ fornecedor.get_tipo_fornecedor_display }}</div>
+                        {% if fornecedor.e_distribuidor %}
+                            <span class="badge badge-info">Distribuidor Oficial</span>
+                        {% endif %}
+                    </div>
+                    <hr>
+                    <div class="small">
+                        <p class="mb-1"><strong>Razão Social:</strong><br>{{ fornecedor.razao_social }}</p>
+                        <p class="mb-1"><strong>CNPJ:</strong> {{ fornecedor.cnpj }}</p>
+                        <p class="mb-1"><strong>IE:</strong> {{ fornecedor.inscricao_estadual|default:"ISENTO" }}</p>
+                        <p class="mb-1"><strong>Regime:</strong> {{ fornecedor.get_regime_tributario_display }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center bg-light">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        Contatos Adicionais 
+                        <span class="badge badge-primary badge-pill ml-2">{{ fornecedor.contatos.count }}</span>
+                    </h6>
+                    <button class="btn btn-primary btn-sm btn-circle shadow-sm" 
+                            title="Adicionar Contato"
+                            hx-get="{% url 'produtos:fornecedor_contato_add' fornecedor.pk %}"
+                            hx-target="#htmx-modal-content" 
+                            data-toggle="modal" 
+                            data-target="#htmx-modal">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for contato in fornecedor.contatos.all %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong class="text-dark">{{ contato.nome }}</strong>
+                                    {% if contato.eh_principal %}<span class="badge badge-success ml-1">Principal</span>{% endif %}
+                                    <div class="text-muted small">{{ contato.cargo|default:"Não informado" }}</div>
+                                </div>
+                                <div class="btn-group">
+                                    
+                                    {% if contato.email %}
+                                        <a href="mailto:{{ contato.email }}" target="_blank" class="btn btn-sm btn-light text-primary" title="E-mail">
+                                            <i class="fas fa-envelope"></i>
+                                        </a>
+                                        <a href="https://teams.microsoft.com/l/chat/0/0?users={{ contato.email }}" target="_blank" class="btn btn-sm btn-light text-info" title="Teams">
+                                            <i class="fab fa-microsoft"></i>
+                                        </a>
+                                    {% endif %}
+                                    
+                                    {% if contato.telefone %}
+                                        <a href="https://wa.me/55{{ contato.telefone|slugify }}" target="_blank" class="btn btn-sm btn-light text-success" title="WhatsApp">
+                                            <i class="fab fa-whatsapp"></i>
+                                        </a>
+                                    {% endif %}
+
+                                    <button class="btn btn-sm btn-light text-warning" 
+                                            title="Editar Contato"
+                                            hx-get="{% url 'produtos:fornecedor_contato_edit' contato.pk %}"
+                                            hx-target="#htmx-modal-content" 
+                                            data-toggle="modal" 
+                                            data-target="#htmx-modal">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+
+                                    <button class="btn btn-sm btn-light text-danger" 
+                                            title="Excluir Contato"
+                                            hx-get="{% url 'produtos:fornecedor_contato_delete' contato.pk %}"
+                                            hx-target="#htmx-modal-content"
+                                            data-toggle="modal" 
+                                            data-target="#htmx-modal">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+
+                                </div>
+                            </div>
+                            {% if contato.categorias.all %}
+                            <div class="mt-2">
+                                {% for cat in contato.categorias.all %}
+                                <span class="badge badge-light border" style="font-size: 0.7rem;">{{ cat.nome }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% empty %}
+                        <div class="p-3 text-center text-muted small">Nenhum contato adicional cadastrado.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-8 col-lg-7">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <ul class="nav nav-tabs card-header-tabs" id="fornecedorTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active font-weight-bold" id="geral-tab" data-toggle="tab" href="#geral">Categorias e Obs.</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link font-weight-bold" id="financeiro-tab" data-toggle="tab" href="#financeiro">Financeiro</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="contratos-tab" data-toggle="tab" href="#contratos" role="tab">
+                        <i class="fas fa-file-contract mr-1"></i>Contratos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link font-weight-bold" id="docs-tab" data-toggle="tab" href="#documentos">Documentos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link font-weight-bold" id="historico-tab" data-toggle="tab" href="#historico">Histórico de Alterações</a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="card-body bg-white" style="min-height: 400px;">
+            <div class="tab-content" id="fornecedorTabContent">
+                
+                <div class="tab-pane fade show active" id="geral">
+                    <h6 class="font-weight-bold text-dark">Categorias Fornecidas</h6>
+                    <div class="mb-4">
+                        {% for cat in fornecedor.categorias_fornecidas.all %}
+                            <span class="badge badge-primary px-3 py-2 mr-1 mb-1">{{ cat.nome }}</span>
+                        {% empty %}
+                            <span class="text-muted italic">Nenhuma categoria vinculada.</span>
+                        {% endfor %}
+                    </div>
+                    <hr>
+                    <h6 class="font-weight-bold text-dark">Observações Gerais</h6>
+                    <div class="p-3 bg-light rounded" style="white-space: pre-wrap;">{{ fornecedor.observacoes|default:"Sem observações cadastradas." }}</div>
+                </div>
+
+                <div class="tab-pane fade" id="financeiro">
+                    <div class="row">
+                        <div class="col-md-6 border-right">
+                            <h6 class="font-weight-bold text-success"><i class="fas fa-university mr-2"></i>Dados Bancários</h6>
+                            <div class="bg-light p-3 rounded small" style="white-space: pre-wrap;">{{ fornecedor.dados_bancarios|default:"Não informado." }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="font-weight-bold text-info"><i class="fas fa-file-contract mr-2"></i>Informações de Contrato</h6>
+                            <p class="small text-dark">{{ fornecedor.informacoes_contrato|default:"Nenhuma informação de contrato registrada." }}</p>
+                            
+                            {% if fornecedor.e_distribuidor or fornecedor.tipo_fornecedor == 'DIST' %}
+                            <div class="card border-left-warning mt-3">
+                                <div class="card-body p-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Regra de Comissionamento</div>
+                                    <div class="small text-dark">{{ fornecedor.comissionamento_regra|default:"Regra não definida." }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="contratos" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Contratos de Fornecimento / Despesa</h6>
+                        <button class="btn btn-primary btn-sm shadow-sm"
+                                hx-get="{% url 'contratos:contrato_create' %}?fornecedor={{ fornecedor.pk }}&tipo=DESP"
+                                hx-target="#htmx-modal-content"
+                                data-toggle="modal" data-target="#htmx-modal">
+                            <i class="fas fa-plus fa-sm mr-1"></i> Vincular Novo Contrato
+                        </button>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover border">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Início</th>
+                                    <th>Valor Mensal</th>
+                                    <th>Situação</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contrato in fornecedor.contratos_despesa.all %}
+                                <tr>
+                                    <td class="font-weight-bold">{{ contrato.numero_contrato }}</td>
+                                    <td>{{ contrato.data_inicio|date:"d/m/Y" }}</td>
+                                    <td class="text-success">R$ {{ contrato.valor_mensal }}</td>
+                                    <td>
+                                        <span class="badge badge-pill badge-light border">{{ contrato.get_situacao_display }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{% url 'contratos:contrato_detail' contrato.pk %}" class="btn btn-light btn-sm border">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        Nenhum contrato de despesa vinculado a este fornecedor.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="documentos">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="font-weight-bold text-dark">Documentos e Contratos Anexos</h6>
+                        <button class="btn btn-success btn-sm shadow-sm"
+                                hx-get="{% url 'produtos:fornecedor_documento_add' fornecedor.pk %}"
+                                hx-target="#htmx-modal-content"
+                                data-toggle="modal" data-target="#htmx-modal">
+                            <i class="fas fa-plus mr-1"></i> Adicionar Documento
+                        </button>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm small">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Documento</th>
+                                    <th>Data Upload</th>
+                                    <th class="text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doc in fornecedor.documentos.all %}
+                                <tr>
+                                    <td>
+                                        {% with doc.arquivo.name|lower as filename %}
+                                            {% if filename|slice:"-4:" == ".pdf" %}
+                                                <i class="fas fa-file-pdf text-danger mr-2"></i>
+                                            {% elif filename|slice:"-5:" == ".xlsx" or filename|slice:"-4:" == ".xls" or filename|slice:"-4:" == ".csv" %}
+                                                <i class="fas fa-file-excel text-success mr-2"></i>
+                                            {% elif filename|slice:"-5:" == ".docx" or filename|slice:"-4:" == ".doc" %}
+                                                <i class="fas fa-file-word text-primary mr-2"></i>
+                                            {% elif filename|slice:"-4:" == ".jpg" or filename|slice:"-5:" == ".jpeg" or filename|slice:"-4:" == ".png" %}
+                                                <i class="fas fa-file-image text-info mr-2"></i>
+                                            {% else %}
+                                                <i class="fas fa-file-alt text-secondary mr-2"></i>
+                                            {% endif %}
+                                        {% endwith %}
+                                        
+                                        <strong>{{ doc.nome }}</strong><br>
+                                        <span class="text-muted small">{{ doc.descricao|default:"" }}</span>
+                                    </td>
+                                    <td>{{ doc.data_upload|date:"d/m/Y H:i" }}</td>
+                                    <td class="text-right">
+                                        <a href="{{ doc.arquivo.url }}" target="_blank" class="btn btn-sm btn-info" title="Visualizar">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-danger" 
+                                                hx-get="{% url 'produtos:fornecedor_documento_delete' doc.pk %}"
+                                                hx-target="#htmx-modal-content"
+                                                data-toggle="modal" data-target="#htmx-modal">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted italic">Nenhum documento anexado.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="historico">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover small">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Usuário</th>
+                                    <th>Operação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in fornecedor.history.all|slice:":15" %}
+                                <tr>
+                                    <td>{{ record.history_date|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ record.history_user|default:"Sistema" }}</td>
+                                    <td>
+                                        {% if record.history_type == '+' %}
+                                            <span class="badge badge-success">Criação</span>
+                                        {% elif record.history_type == '~' %}
+                                            <span class="badge badge-warning">Edição</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Exclusão</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div> </div> </div> </div>
+    </div>
+</div>
+{% endblock %}

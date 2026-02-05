@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Lançamento em Lote | Receitas{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+            <i class="fas fa-file-import mr-2 text-primary"></i>Lançamento em Lote (Receitas)
+        </h1>
+        <a href="{% url 'financeiro:fatura_list' %}" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left mr-2"></i>Voltar
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-15 overflow-hidden">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle" id="tabela-lote">
+                        <thead class="bg-light text-muted small text-uppercase">
+                            <tr>
+                                <th style="width: 40%;">Cliente</th>
+                                <th>Nº Documento</th>
+                                <th>Vencimento</th>
+                                <th>Valor (R$)</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in "12345" %}
+                            <tr>
+                                <td>
+                                    <select name="cliente[]" class="form-control form-control-sm rounded-8">
+                                        <option value="">Selecione o Cliente...</option>
+                                        {% for cliente in clientes %}
+                                            <option value="{{ cliente.id }}">{{ cliente.razao_social }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td><input type="text" name="numero[]" class="form-control form-control-sm rounded-8"></td>
+                                <td><input type="date" name="vencimento[]" class="form-control form-control-sm rounded-8"></td>
+                                <td><input type="number" step="0.01" name="valor[]" class="form-control form-control-sm rounded-8" placeholder="0.00"></td>
+                                <td><button type="button" class="btn btn-sm text-danger" onclick="this.closest('tr').remove()"><i class="fas fa-times"></i></button></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 text-right">
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-lg font-weight-bold">
+                        Processar Receitas
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

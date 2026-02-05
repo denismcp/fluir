@@ -1,0 +1,7 @@
+<option value="" selected>Selecione a Oportunidade...</option>
+{% for opt in oportunidades %}
+    <option value="{{ opt.id }}">{{ opt.nome }} ({{ opt.data_fechamento_real|date:"d/m/Y" }})</option>
+{% empty %}
+    <option value="">Nenhuma oportunidade recorrente disponível</option>
+{% endfor %}
+

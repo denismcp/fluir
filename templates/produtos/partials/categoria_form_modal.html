@@ -1,0 +1,46 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header">
+    <h5 class="modal-title" id="categoriaModalLabel">
+        {% if form.instance.pk %}Editar Categoria: {{ form.instance.nome }}{% else %}Nova Categoria{% endif %}
+    </h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form 
+    hx-post="{% if form.instance.pk %}{% url 'produtos:categoria_update' form.instance.pk %}{% else %}{% url 'produtos:categoria_create' %}{% endif %}" 
+    hx-target="#htmx-modal-content"
+    class="needs-validation"
+>
+    {% csrf_token %}
+    <div class="modal-body">
+        {# Usamos apenas o filtro |crispy no objeto form completo #}
+        {# Isso evita erros de "campo inexistente" #}
+        {{ form|crispy }}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar Categoria</button>
+    </div>
+</form>
+
+<script>
+    // Gerador de Slug automático
+    var nomeInput = document.querySelector('input[name="nome"]');
+    var slugInput = document.querySelector('input[name="slug"]');
+    
+    if (nomeInput && slugInput) {
+        nomeInput.addEventListener('keyup', function() {
+            if (!slugInput.value || slugInput.readOnly) {
+                slugInput.value = this.value
+                    .toLowerCase()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^\w ]+/g, '')
+                    .replace(/ +/g, '-');
+            }
+        });
+    }
+</script>

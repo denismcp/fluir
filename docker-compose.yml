@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: fluir_db_qa
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=fluir_erp_qa
+      - POSTGRES_USER=fluir_admin
+      - POSTGRES_PASSWORD=Fluir==b2-4acq12we34r
+    networks:
+      - fluir_network
+
+  web:
+    build: 
+      context: /home/fluir/qa
+      dockerfile: Dockerfile
+    container_name: fluir_app_qa
+    restart: always
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn --bind 0.0.0.0:8000 tc_config.wsgi:application"
+    volumes:
+      - /home/fluir/qa:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    environment:
+      - DATABASE_URL=postgres://fluir_admin:Fluir==b2-4acq12we34r@db:5432/fluir_erp_qa
+      - DEBUG=False
+      - SECRET_KEY=TC==b2-4acq12we34r
+    depends_on:
+      - db
+    networks:
+      - fluir_network
+    ports:
+      - "8000:8000"
+
+networks:
+  fluir_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Categorias de Produtos</h6>
+        <button class="btn btn-primary btn-sm" 
+                hx-get="{% url 'produtos:categoria_create' %}" 
+                hx-target="#htmx-modal-content" 
+                data-toggle="modal" data-target="#htmx-modal">
+            <i class="fas fa-plus"></i> Nova Categoria
+        </button>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Slug (URL)</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for categoria in categorias %}
+                <tr>
+                    <td>{{ categoria.nome }}</td>
+                    <td>{{ categoria.slug }}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" hx-get="{% url 'produtos:categoria_update' categoria.pk %}" hx-target="#htmx-modal-content" data-toggle="modal" data-target="#htmx-modal">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-center">Nenhuma categoria cadastrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

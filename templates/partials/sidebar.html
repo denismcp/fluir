@@ -1,0 +1,168 @@
+{% load static %}
+<style>
+    /* DESIGN SYSTEM SIDEBAR ULTRA PREMIUM V2 */
+    #accordionSidebar { 
+        background: linear-gradient(180deg, #1a1c23 0%, #242a38 100%) !important; 
+        box-shadow: 4px 0 15px rgba(0,0,0,0.15); 
+        border: none; 
+    }
+    .sidebar-brand { padding: 2rem 1rem !important; height: auto !important; }
+    .sidebar-logo-img { max-width: 85%; height: auto; object-fit: contain; filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.25)); }
+    
+    .nav-item .nav-link { 
+        padding: 0.85rem 1.2rem !important; 
+        margin: 0.2rem 0.8rem; 
+        border-radius: 12px; 
+        color: rgba(255,255,255,0.55) !important; 
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .nav-item .nav-link i { font-size: 0.9rem; margin-right: 0.75rem; width: 20px; text-align: center; }
+    
+    .nav-item.active .nav-link { 
+        background: linear-gradient(90deg, #5e72e4 0%, #825ee4 100%) !important; 
+        color: #fff !important; 
+        font-weight: 600; 
+        box-shadow: 0 4px 12px rgba(94, 114, 228, 0.4);
+    }
+    
+    .sidebar-heading { 
+        color: rgba(255,255,255,0.25) !important; 
+        font-weight: 800; 
+        text-transform: uppercase; 
+        letter-spacing: 1.8px; 
+        font-size: 0.62rem !important; 
+        margin-top: 1.8rem; 
+        padding: 0 1.8rem !important; 
+    }
+    
+    .collapse-inner { 
+        background: rgba(0,0,0,0.25) !important; 
+        border-radius: 12px; 
+        margin: 0.4rem 0.8rem; 
+        border: 1px solid rgba(255,255,255,0.03); 
+        padding: 0.5rem 0;
+    }
+    .collapse-item { 
+        color: rgba(255,255,255,0.5) !important; 
+        font-size: 0.8rem !important; 
+        padding: 0.6rem 1.2rem !important; 
+        display: flex;
+        align-items: center;
+        transition: 0.2s;
+    }
+    .collapse-item i { font-size: 0.75rem; width: 18px; margin-right: 8px; opacity: 0.6; }
+    .collapse-item:hover, .collapse-item.active { 
+        color: #fff !important; 
+        text-decoration: none; 
+        background: rgba(255,255,255,0.08); 
+    }
+</style>
+
+<ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'tc_core:dashboard' %}">
+        <img src="{% static 'img/logohorizontal.jpg' %}" alt="ERP Logo" class="sidebar-logo-img">
+    </a>
+
+    <li class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <a class="nav-link" href="{% url 'tc_core:dashboard' %}">
+            <i class="fas fa-desktop"></i><span>Visão Executiva</span>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider opacity-1">
+
+    {% if user.departamento == 'comercial' or user.departamento == 'diretoria' or user.is_superuser %}
+    <div class="sidebar-heading text-white-50">Comercial & Vendas</div>
+    <li class="nav-item {% if request.resolver_match.namespace == 'crm' %}active{% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCRM">
+            <i class="fas fa-funnel-dollar"></i><span>Vendas (CRM)</span>
+        </a>
+        <div id="collapseCRM" class="collapse {% if request.resolver_match.namespace == 'crm' %}show{% endif %}" data-parent="#accordionSidebar">
+            <div class="collapse-inner">
+                <a class="collapse-item font-weight-bold text-info" href="{% url 'crm:dashboard_vendas' %}">
+                    <i class="fas fa-chart-line"></i> Dashboard Vendas
+                </a>
+                <hr class="mx-3 my-1 border-light opacity-1">
+                
+                <a class="collapse-item" href="{% url 'crm:kanban' %}"><i class="fas fa-columns"></i> Pipeline / Kanban</a>
+                <a class="collapse-item" href="{% url 'crm:oportunidade_list' %}"><i class="fas fa-briefcase"></i> Oportunidades</a>
+                <a class="collapse-item" href="{% url 'crm:proposta_list' %}"><i class="fas fa-file-signature"></i> Propostas</a>
+                <a class="collapse-item" href="{% url 'crm:cliente_list' %}"><i class="fas fa-users"></i> Clientes / Leads</a>
+            </div>
+        </div>
+    </li>
+    {% endif %}
+
+    {% if user.departamento == 'financeiro' or user.departamento == 'diretoria' or user.is_superuser %}
+    <div class="sidebar-heading text-primary">Gestão Financeira</div>
+    <li class="nav-item {% if request.resolver_match.namespace == 'financeiro' %}active{% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFinanceiro">
+            <i class="fas fa-wallet"></i><span>Financeiro Premium</span>
+        </a>
+        <div id="collapseFinanceiro" class="collapse {% if request.resolver_match.namespace == 'financeiro' %}show{% endif %}" data-parent="#accordionSidebar">
+            <div class="collapse-inner">
+                <a class="collapse-item" href="{% url 'financeiro:dashboard' %}"><i class="fas fa-chart-bar"></i> Dashboard Geral</a>
+                <a class="collapse-item" href="{% url 'financeiro:fatura_list' %}"><i class="fas fa-receipt"></i> Faturas</a>
+                <a class="collapse-item" href="{% url 'financeiro:despesa_list' %}"><i class="fas fa-file-invoice-dollar"></i> Despesas</a>
+            </div>
+        </div>
+    </li>
+    {% endif %}
+
+    {% if user.departamento == 'operacional' or user.departamento == 'diretoria' or user.is_superuser %}
+    <div class="sidebar-heading">Operacional</div>
+    <li class="nav-item {% if request.resolver_match.namespace == 'contratos' %}active{% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseContratos">
+            <i class="fas fa-file-contract"></i><span>Contratos</span>
+        </a>
+        <div id="collapseContratos" class="collapse {% if request.resolver_match.namespace == 'contratos' %}show{% endif %}" data-parent="#accordionSidebar">
+            <div class="collapse-inner">
+                <a class="collapse-item" href="{% url 'contratos:contrato_list' %}"><i class="fas fa-list-alt"></i> Gestão de Contratos</a>
+            </div>
+        </div>
+    </li>
+    {% endif %}
+
+    {% if user.departamento != 'financeiro' or user.is_superuser %}
+    <div class="sidebar-heading">Catálogo & Itens</div>
+    <li class="nav-item {% if request.resolver_match.namespace == 'produtos' %}active{% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCatalogo">
+            <i class="fas fa-boxes"></i><span>Configurações</span>
+        </a>
+        <div id="collapseCatalogo" class="collapse {% if request.resolver_match.namespace == 'produtos' %}show{% endif %}" data-parent="#accordionSidebar">
+            <div class="collapse-inner">
+                <a class="collapse-item" href="{% url 'produtos:produto_list' %}"><i class="fas fa-box"></i> Produtos</a>
+                <a class="collapse-item" href="{% url 'produtos:servico_list' %}"><i class="fas fa-tools"></i> Serviços</a>
+                <a class="collapse-item" href="{% url 'produtos:kit_list' %}"><i class="fas fa-layer-group"></i> Kits de Materiais</a>
+                <a class="collapse-item" href="{% url 'produtos:fornecedor_list' %}"><i class="fas fa-truck"></i> Fornecedores</a>
+            </div>
+        </div>
+    </li>
+    {% endif %}
+
+    {% if user.is_superuser or user.departamento == 'diretoria' %}
+    <div class="sidebar-heading text-white-50">Configurações Globais</div>
+    <li class="nav-item {% if request.resolver_match.url_name in 'usuario_list,regra_list,meta_list' %}active{% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAdmin">
+            <i class="fas fa-cogs"></i><span>Administração</span>
+        </a>
+        <div id="collapseAdmin" class="collapse {% if request.resolver_match.url_name in 'usuario_list,regra_list,meta_list' %}show{% endif %}" data-parent="#accordionSidebar">
+            <div class="collapse-inner">
+                <a class="collapse-item" href="{% url 'tc_core:usuario_list' %}"><i class="fas fa-user-shield"></i> Usuários</a>
+                <a class="collapse-item" href="{% url 'tc_core:regra_list' %}"><i class="fas fa-key"></i> Perfis</a>
+                <a class="collapse-item" href="{% url 'tc_core:meta_list' %}"><i class="fas fa-bullseye"></i> Metas Globais</a>
+            </div>
+        </div>
+    </li>
+    {% endif %}
+
+    <hr class="sidebar-divider d-none d-md-block opacity-1">
+    <li class="nav-item">
+        <form action="/logout/" method="post">
+            {% csrf_token %}
+            <button type="submit" class="nav-link border-0 bg-transparent text-left w-100" style="color: #ffb700 !important; cursor: pointer;">
+                <i class="fas fa-sign-out-alt"></i><span>Encerrar Sessão</span>
+            </button>
+        </form>
+    </li>
+</ul>

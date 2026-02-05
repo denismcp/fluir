@@ -1,0 +1,36 @@
+<div class="modal-header {% if erro_integridade %}bg-warning text-dark{% else %}bg-danger text-white{% endif %}">
+    <h5 class="modal-title">
+        {% if erro_integridade %}Ação Impedida{% else %}Confirmar Exclusão{% endif %}
+    </h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<div class="modal-body text-center">
+    {% if erro_integridade %}
+        <i class="fas fa-lock fa-3x text-warning mb-3"></i>
+        <h5 class="font-weight-bold">Não é possível excluir!</h5>
+        <p class="text-muted">{{ motivo }}</p>
+        <div class="alert alert-info small">
+            <strong>Recomendação:</strong> Em vez de excluir, edite o produto e desmarque a opção <strong>"Ativo"</strong> para removê-lo das listas operacionais preservando o histórico.
+        </div>
+    {% else %}
+        <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+        <p>Deseja excluir permanentemente o produto:</p>
+        <h5 class="font-weight-bold text-gray-900">{{ object.nome }}</h5>
+    {% endif %}
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+        {% if erro_integridade %}Entendido{% else %}Cancelar{% endif %}
+    </button>
+    
+    {% if not erro_integridade %}
+    <form hx-post="{% url 'produtos:produto_delete' object.pk %}" hx-target="#htmx-modal-content">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sim, Excluir Produto</button>
+    </form>
+    {% endif %}
+</div>

@@ -1,0 +1,74 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-gradient-info text-white border-0">
+    <h5 class="modal-title font-weight-bold" id="htmx-modal-label">
+        <i class="fas fa-file-invoice-dollar mr-2"></i>
+        {% if form.instance.pk %}Editar Proposta #{{ form.instance.id_proposta }}{% else %}Nova Proposta Comercial{% endif %}
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form hx-post="{{ request.path }}" hx-target="#htmx-modal-content" class="bg-light">
+    {% csrf_token %}
+    <div class="modal-body p-4">
+        
+        <div class="alert alert-secondary border-0 shadow-sm mb-4 rounded-12 d-flex align-items-center" style="background-color: #e2e5ec;">
+            <i class="fas fa-link mr-3 text-info"></i>
+            <div>
+                <small class="text-muted d-block text-uppercase font-weight-bold" style="font-size: 0.65rem;">Vinculada à Oportunidade:</small>
+                <span class="font-weight-bold text-dark">{{ oportunidade.nome }}</span>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4 rounded-15">
+            <div class="card-body p-4">
+                <h6 class="text-info font-weight-bold mb-4 small text-uppercase" style="letter-spacing: 1px;">
+                    <i class="fas fa-info-circle mr-2"></i>Definições da Proposta
+                </h6>
+                
+                {# Renderização automática para evitar CrispyError #}
+                {{ form|crispy }}
+                
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer border-0 bg-white">
+        <button type="button" class="btn btn-link text-muted font-weight-bold" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-info px-5 shadow-sm rounded-pill font-weight-bold text-white">
+            <i class="fas fa-check-circle mr-2"></i>Gravar Proposta
+        </button>
+    </div>
+</form>
+
+<style>
+    /* Estilos Premium Reutilizados */
+    .rounded-15 { border-radius: 15px !important; }
+    .rounded-12 { border-radius: 12px !important; }
+    .modal-content { border: none; border-radius: 20px; overflow: hidden; }
+    .bg-gradient-info { background: linear-gradient(135deg, #11cdef 0, #1171ef 100%) !important; }
+    
+    /* Padronização dos Campos Crispy */
+    .form-control, .form-select {
+        border-radius: 8px !important;
+        border: 1px solid #e9ecef !important;
+        background-color: #f8f9fc !important;
+        padding: 0.6rem 0.75rem !important;
+    }
+    .form-control:focus {
+        background-color: #fff !important;
+        border-color: #11cdef !important;
+        box-shadow: 0 0 8px rgba(17, 205, 239, 0.15) !important;
+    }
+    label {
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        color: #8898aa !important;
+        text-uppercase: uppercase !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .help-block { font-size: 0.7rem; color: #adb5bd; }
+</style>

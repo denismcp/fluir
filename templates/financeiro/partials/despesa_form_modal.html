@@ -1,0 +1,144 @@
+{% load humanize %}
+<div class="modal-header bg-primary text-white border-0 py-3">
+    <h5 class="modal-title font-weight-bold">
+        <i class="fas fa-file-invoice-dollar mr-2"></i>Lançamento de Despesa
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<div class="modal-body p-4 bg-light">
+    <form hx-post="{{ request.path }}" 
+      hx-target="#htmx-modal-content" 
+      hx-on::after-request="if(event.detail.xhr.status === 204) $('#htmx-modal').modal('hide');"
+      class="premium-form">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="alert alert-danger rounded-12 shadow-sm mb-4 border-0">
+            <strong class="d-block mb-1 text-danger"><i class="fas fa-exclamation-circle mr-2"></i> Atenção:</strong>
+            <ul class="mb-0 small pl-3">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-12 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted small">Descrição / Finalidade</label>
+                {{ form.descricao }}
+            </div>
+
+            <div class="col-md-12 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted small">Fornecedor / Favorecido</label>
+                {{ form.fornecedor }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted small">Nº Documento / Nota</label>
+                {{ form.numero_documento }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted small">Forma de Pagamento</label>
+                {{ form.forma_pagamento }}
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted small">Valor Nominal (R$)</label>
+                {{ form.valor_original }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted text-danger small">Juros (R$)</label>
+                {{ form.valor_juros }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted text-danger small">Multa (R$)</label>
+                {{ form.valor_multa }}
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted text-warning small">Outros Acréscimos (+)</label>
+                {{ form.valor_acrescimo }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted text-success small">Descontos (-)</label>
+                {{ form.valor_desconto }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-primary small">Valor Líquido Total</label>
+                <div class="form-control bg-light border-0 rounded-12 font-weight-bold text-primary display-total">
+                    R$ <span id="display_total">0,00</span>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted small">Vencimento</label>
+                {{ form.data_vencimento }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted small">Mês de Competência</label>
+                {{ form.data_competencia }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted text-success small">Liquidação (Data Pgto)</label>
+                {{ form.data_liquidacao }}
+            </div>
+
+            <div class="col-12 mb-3">
+                <label class="text-xs font-weight-bold text-uppercase text-muted small">Observações Internas</label>
+                {{ form.observacoes }}
+            </div>
+
+            <div class="col-12 mt-2">
+                <div class="custom-control custom-switch py-2">
+                    {{ form.pago }}
+                    <label class="custom-control-label font-weight-bold text-dark ml-2" for="{{ form.pago.id_for_label }}">Confirmar Liquidação (Pago)</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer border-0 px-0 pb-0 mt-4">
+            <button type="button" class="btn btn-link text-muted font-weight-bold" data-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-lg font-weight-bold text-uppercase">
+                <i class="fas fa-check-circle mr-2"></i>Salvar Lançamento
+            </button>
+        </div>
+
+<script>
+    function calcularTotal() {
+        // Função auxiliar para pegar valor numérico ou zero
+        const getVal = (name) => {
+            const el = document.querySelector(`[name="${name}"]`);
+            return el ? (parseFloat(el.value) || 0) : 0;
+        };
+
+        const original = getVal('valor_original');
+        const juros = getVal('valor_juros');
+        const multa = getVal('valor_multa');
+        const acrescimo = getVal('valor_acrescimo');
+        const desconto = getVal('valor_desconto');
+
+        const total = (original + juros + multa + acrescimo) - desconto;
+        
+        const display = document.getElementById('display_total');
+        if (display) {
+            display.innerText = total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        }
+    }
+
+    // Adiciona o evento em todos os campos
+    ['valor_original', 'valor_juros', 'valor_multa', 'valor_acrescimo', 'valor_desconto'].forEach(name => {
+        const el = document.querySelector(`[name="${name}"]`);
+        if (el) el.addEventListener('input', calcularTotal);
+    });
+
+    // Roda ao carregar
+    calcularTotal();
+</script>

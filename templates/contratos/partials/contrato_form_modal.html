@@ -1,0 +1,83 @@
+{% load crispy_forms_tags %}
+
+<style>
+    .select2-container { width: 100% !important; }
+    .is-automated { background-color: #e8f4fd !important; border-color: #bee5eb !important; }
+</style>
+
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title"><i class="fas fa-file-contract mr-2"></i>{% if object %}Editar{% else %}Novo{% endif %} Contrato</h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form hx-post="{% if object %}{% url 'contratos:contrato_update' object.pk %}{% else %}{% url 'contratos:contrato_create' %}{% endif %}" hx-target="#htmx-modal-content">
+    {% csrf_token %}
+    <div class="modal-body bg-light">
+        <div class="row">
+            <div class="col-md-6">{{ form.tipo_contrato|as_crispy_field }}</div>
+            <div class="col-md-6">{{ form.situacao|as_crispy_field }}</div>
+        </div>
+        <div class="row">
+            <div class="col-md-12" id="div_id_oportunidade" style="min-height: 85px;">
+                {{ form.oportunidade|as_crispy_field }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">{{ form.cliente|as_crispy_field }}</div>
+            <div class="col-md-6">{{ form.fornecedor|as_crispy_field }}</div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">{{ form.objeto_contrato|as_crispy_field }}</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">{{ form.valor_mensal|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.dia_vencimento|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.indice_reajuste|as_crispy_field }}</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">{{ form.data_inicio|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.data_fim|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.data_proxima_renovacao|as_crispy_field }}</div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btn-cancelar-modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar Contrato</button>
+    </div>
+</form>
+
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({ dropdownParent: $('#htmx-modal'), width: '100%' });
+
+        $('#id_cliente').on('select2:select', function (e) {
+            htmx.trigger(this, 'change');
+        });
+
+        $('#id_oportunidade').on('select2:select', function (e) {
+            htmx.trigger(this, 'change');
+        });
+
+        // Força o fechamento manual caso o data-dismiss falhe
+        $('#btn-cancelar-modal').on('click', function() {
+            $('#htmx-modal').modal('hide');
+        });
+    });
+
+    document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+        if (evt.detail.target.id === 'id_oportunidade') {
+            $('#id_oportunidade').select2({ dropdownParent: $('#htmx-modal'), width: '100%' });
+        }
+        
+        const responseText = evt.detail.xhr.responseText;
+        if (evt.detail.elt.id === 'id_oportunidade') {
+            const campoValor = document.getElementById('id_valor_mensal');
+            if (campoValor && responseText !== "0.00" && !responseText.includes('<option')) {
+                campoValor.value = responseText;
+                campoValor.classList.add('is-automated');
+            }
+        }
+    });
+</script>

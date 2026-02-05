@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Pipeline de Vendas | Fluir CRM{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 px-2">
+        <div>
+            <h1 class="h3 mb-1 text-gray-800 font-weight-bold">Pipeline de Vendas</h1> <p class="text-muted small">Acompanhamento centralizado de oportunidades comerciais</p>
+        </div>
+        <div>
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm font-weight-bold"
+                    style="background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%); border: none; height: 45px;"
+                    hx-get="{% url 'crm:oportunidade_create' %}" 
+                    hx-target="#htmx-modal-content">
+                <i class="fas fa-plus-circle mr-2"></i>Nova Oportunidade
+            </button>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm rounded-15 bg-gradient-primary text-white h-100">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-uppercase mb-1 small font-weight-bold opacity-8">Pipeline Ativo</h6>
+                            <span class="h3 font-weight-bold mb-0">R$ {{ pipeline_total|floatformat:2|intcomma }}</span>
+                        </div>
+                        <div class="col-auto">
+                            <div class="icon-shape bg-white text-primary rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="fas fa-funnel-dollar fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm rounded-15 bg-gradient-success text-white h-100">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-uppercase mb-1 small font-weight-bold opacity-8">Vendas do Mês</h6>
+                            <span class="h3 font-weight-bold mb-0">R$ {{ total_ganho_mes|floatformat:2|intcomma }}</span>
+                        </div>
+                        <div class="col-auto">
+                            <div class="icon-shape bg-white text-success rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="fas fa-trophy fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm rounded-15 bg-gradient-warning text-white h-100">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-uppercase mb-1 small font-weight-bold opacity-8">Negócios Abertos</h6>
+                            <span class="h3 font-weight-bold mb-0">{{ qtd_oportunidades }}</span>
+                        </div>
+                        <div class="col-auto">
+                            <div class="icon-shape bg-white text-warning rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="fas fa-handshake fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-15 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="px-4 py-3 border-0">Oportunidade</th>
+                            <th class="py-3 border-0">Cliente</th>
+                            <th class="py-3 border-0 text-center">Prev. Fechamento</th>
+                            <th class="py-3 border-0 text-center">Data Fechamento</th> <th class="py-3 border-0 text-right">Valor Estimado</th>
+                            <th class="py-3 border-0 text-center">Status</th>
+                            <th class="px-4 py-3 border-0 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        {% for opt in oportunidades %}
+                        <tr style="cursor: pointer;" onclick="location.href='{% url 'crm:oportunidade_detail' opt.pk %}'">
+                            <td class="px-4 py-3">
+                                <div class="font-weight-bold text-dark">{{ opt.nome }}</div>
+                                <div class="d-flex align-items-center mt-1">
+                                    <small class="text-muted mr-2">ID: #{{ opt.pk|stringformat:"04d" }}</small>
+                                    {# Lógica para buscar proposta ganha associada #}
+                                    {% for proposta in opt.proposta_set.all %}
+                                        {% if proposta.status == 'aceita' %}
+                                        <span class="badge badge-info-soft text-info small font-weight-bold" style="font-size: 0.65rem;">
+                                            <i class="fas fa-file-contract mr-1"></i>PROP: {{ proposta.id_proposta }}
+                                        </span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-dark">{{ opt.cliente.razao_social|truncatechars:30 }}</div>
+                                <small class="text-primary font-weight-bold">
+                                    <i class="far fa-building mr-1"></i>{{ opt.cliente.nome_fantasia|default:"-" }}
+                                </small>
+                            </td>
+                            <td class="text-center font-weight-bold text-muted">
+                                {{ opt.data_fechamento_prevista|date:"d/m/Y" }}
+                            </td>
+                            <td class="text-center">
+                                {# Utilizando o campo data_fechamento_real do seu Model #}
+                                {% if opt.data_fechamento_real %}
+                                    <span class="text-dark font-weight-bold">{{ opt.data_fechamento_real|date:"d/m/Y" }}</span>
+                                {% else %}
+                                    <span class="text-light-gray opacity-5 small">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-right">
+                                <div class="font-weight-bold text-success">R$ {{ opt.valor_estimado|floatformat:2|intcomma }}</div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill px-3 py-2 font-weight-bold
+                                    {% if opt.etapa.e_etapa_ganha %}badge-success-soft text-success
+                                    {% elif 'Perdida' in opt.etapa.nome %}badge-danger-soft text-danger
+                                    {% else %}badge-primary-soft text-primary{% endif %}">
+                                    {{ opt.etapa.nome|upper }}
+                                </span>
+                            </td>
+                            <td class="px-4 text-center" onclick="event.stopPropagation();">
+                                <button class="btn btn-sm btn-white border-light text-primary shadow-none" 
+                                        hx-get="{% url 'crm:oportunidade_update' opt.pk %}" 
+                                        hx-target="#htmx-modal-content">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fas fa-search fa-3x mb-3 opacity-2"></i>
+                                <p class="font-weight-bold">Nenhuma oportunidade localizada no pipeline.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos Premium Fluir */
+    .bg-gradient-primary { background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%) !important; }
+    .bg-gradient-success { background: linear-gradient(135deg, #2dce89 0%, #2dcecc 100%) !important; }
+    .bg-gradient-warning { background: linear-gradient(135deg, #fb6340 0%, #fbb140 100%) !important; }
+    
+    .badge-success-soft { background-color: #e8f9f1; color: #2dce89; border: 1px solid rgba(45, 206, 137, 0.2); }
+    .badge-danger-soft { background-color: #fee7e9; color: #f5365c; border: 1px solid rgba(245, 54, 92, 0.2); }
+    .badge-primary-soft { background-color: #e7eafb; color: #5e72e4; border: 1px solid rgba(94, 114, 228, 0.2); }
+    .badge-info-soft { background-color: #e1f5fe; color: #0288d1; border: 1px solid rgba(2, 136, 209, 0.1); }
+    
+    .rounded-15 { border-radius: 15px !important; }
+    .table-hover tbody tr:hover { background-color: #f8f9fe; transition: background 0.2s; }
+    .text-light-gray { color: #dee2e6; }
+</style>
+{% endblock %}

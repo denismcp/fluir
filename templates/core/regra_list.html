@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Perfis e Permissões | Fluir{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 px-2">
+        <div>
+            <h1 class="h3 mb-1 text-gray-800 font-weight-bold">Perfis de Acesso</h1>
+            <p class="text-muted small">Defina o que cada grupo de usuários pode visualizar ou editar</p>
+        </div>
+        <div class="d-flex align-items-center">
+            <button class="btn btn-outline-secondary rounded-circle mr-3 shadow-sm d-flex align-items-center justify-content-center" 
+                    style="width: 42px; height: 42px;"
+                    title="Guia de Uso"
+                    hx-get="{% url 'tc_core:ajuda_acessos' %}" 
+                    hx-target="#htmx-modal-content"
+                    data-toggle="modal" data-target="#htmx-modal">
+                <i class="fas fa-question"></i>
+            </button>
+
+            <button class="btn btn-dark rounded-pill px-4 shadow-sm font-weight-bold"
+                    style="height: 45px; background: #2d3436; border: none;"
+                    hx-get="{% url 'tc_core:regra_create' %}" 
+                    hx-target="#htmx-modal-content"
+                    data-toggle="modal" data-target="#htmx-modal">
+                <i class="fas fa-shield-alt mr-2 text-warning"></i>Nova Regra
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for regra in regras %}
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card shadow-sm border-0 rounded-15 card-rule-hover h-100" 
+                 style="cursor: pointer;"
+                 hx-get="{% url 'tc_core:regra_update' regra.pk %}"
+                 hx-target="#htmx-modal-content"
+                 data-toggle="modal" data-target="#htmx-modal">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="icon-shape bg-soft-primary text-primary rounded-12 p-3">
+                            <i class="fas fa-user-tag fa-lg"></i>
+                        </div>
+                        <span class="badge badge-pill badge-primary-soft px-3 py-2">
+                            {{ regra.total_usuarios }} Usuário{{ regra.total_usuarios|pluralize }}
+                        </span>
+                    </div>
+                    
+                    <h5 class="font-weight-bold text-dark mb-1">{{ regra.nome }}</h5>
+                    <p class="text-muted small mb-4" style="min-height: 40px;">
+                        {{ regra.descricao|default:"Sem descrição definida para este papel." }}
+                    </p>
+
+                    <div class="border-top pt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="small">
+                                <span class="text-muted">Permissões:</span>
+                                <span class="font-weight-bold text-dark">{{ regra.permissoes.count }}</span>
+                            </div>
+                            <div class="btn-group">
+                                <div class="btn btn-sm btn-outline-light text-primary border-0 rounded-circle">
+                                    <i class="fas fa-pen"></i>
+                                </div>
+                                <button class="btn btn-sm btn-outline-light text-danger border-0 rounded-circle" 
+                                        title="Excluir"
+                                        onclick="event.stopPropagation();"> <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-shield-halved fa-5x text-gray-200"></i>
+            </div>
+            <h4 class="text-gray-500 font-weight-bold">Nenhum perfil cadastrado</h4>
+            <p class="text-muted">Comece criando perfis como "Vendedor", "Gerente" ou "Financeiro" para organizar as permissões.</p>
+            <button class="btn btn-sm btn-primary rounded-pill px-4 mt-2"
+                    hx-get="{% url 'tc_core:regra_create' %}" 
+                    hx-target="#htmx-modal-content"
+                    data-toggle="modal" data-target="#htmx-modal">
+                Criar primeiro perfil
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .rounded-15 { border-radius: 15px !important; }
+    .rounded-12 { border-radius: 12px !important; }
+    
+    .card-rule-hover {
+        transition: all 0.3s ease;
+        border: 1px solid transparent !important;
+    }
+    
+    .card-rule-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+        border-color: #5e72e4 !important;
+    }
+
+    .bg-soft-primary { background-color: #f0f2fe; }
+    .badge-primary-soft { background-color: #e7eafb; color: #5e72e4; }
+    
+    .icon-shape {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,265 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title"><i class="fas fa-truck-loading mr-2"></i>Cadastro de Fornecedor</h5>
+    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+</div>
+
+<form hx-post="{{ request.path }}" hx-target="#htmx-modal-content">
+    {% csrf_token %}
+    <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+        
+        <div class="card border-left-primary shadow-sm mb-4">
+            <div class="card-body">
+                <h6 class="font-weight-bold text-primary mb-3"><i class="fas fa-id-card mr-2"></i>Identificação e Dados Fiscais</h6>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        {{ form.razao_social|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ form.cnpj|as_crispy_field }}
+                    </div>
+                    <div class="col-md-5">
+                        <label for="id_inscricao_estadual" class="font-weight-bold text-dark">Inscrição Estadual</label>
+                        <div class="input-group">
+                            {{ form.inscricao_estadual }}
+                            <div class="input-group-append">
+                                <a href="https://www.sintegra.gov.br/" target="_blank" class="btn btn-outline-secondary">
+                                    <i class="fas fa-search"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            {{ form.isento_ie|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.regime_tributario|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.nome_fantasia|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {# CAMPO CORRIGIDO AQUI #}
+                        {{ form.contato_principal|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        {{ form.tipo_fornecedor|as_crispy_field }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-left-info shadow-sm mb-4">
+            <div class="card-body bg-gray-100">
+                <h6 class="font-weight-bold text-info mb-3"><i class="fas fa-map-marker-alt mr-2"></i>Endereço Completo</h6>
+                <div class="row">
+                    <div class="col-md-3">{{ form.cep|as_crispy_field }}</div>
+                    <div class="col-md-7">{{ form.endereco|as_crispy_field }}</div>
+                    <div class="col-md-2">{{ form.numero|as_crispy_field }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-5">{{ form.bairro|as_crispy_field }}</div>
+                    <div class="col-md-5">{{ form.cidade|as_crispy_field }}</div>
+                    <div class="col-md-2">{{ form.uf|as_crispy_field }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">{{ form.complemento|as_crispy_field }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="font-weight-bold text-dark mb-3"><i class="fas fa-phone mr-2"></i>Contato e Faturamento</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.email|as_crispy_field }}
+                                <div class="d-flex justify-content-end mt-n2 mb-3">
+                                    <a href="#" id="lnkOutlook" target="_blank" class="btn btn-xs btn-light border text-primary mr-1" title="Outlook">
+                                        <i class="fas fa-envelope"></i>
+                                    </a>
+                                    <a href="#" id="lnkTeams" target="_blank" class="btn btn-xs btn-light border text-info" title="Teams">
+                                        <i class="fab fa-microsoft"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.telefone|as_crispy_field }}
+                                <div class="d-flex justify-content-end mt-n2 mb-3">
+                                    <a href="#" id="lnkZap" target="_blank" class="btn btn-xs btn-light border text-success" title="WhatsApp">
+                                        <i class="fab fa-whatsapp mr-1"></i> WhatsApp
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <h6 class="font-weight-bold text-dark mb-3">Classificação</h6>
+                        <div class="custom-control custom-switch custom-switch-lg">
+                            {{ form.e_distribuidor|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+        <button type="submit" class="btn btn-primary px-4 shadow">Salvar Fornecedor</button>
+    </div>
+</form>
+
+<script>
+    (function() {
+        const limparDoc = (v) => v ? v.replace(/\D/g, "") : "";
+        const campo = (name) => document.querySelector(`[name="${name}"]`);
+
+        // --- MÁSCARAS ---
+        const aplicarMascaraCNPJ = (v) => {
+            v = limparDoc(v);
+            v = v.replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+                 .replace(/\.(\d{3})(\d{3})(\d)/, ".$1.$2/$3").replace(/(\d{4})(\d)/, "$1-$2");
+            return v.substring(0, 18);
+        };
+
+        const aplicarMascaraCEP = (v) => {
+            v = limparDoc(v);
+            v = v.replace(/^(\d{5})(\d)/, "$1-$2");
+            return v.substring(0, 9);
+        };
+
+        const aplicarMascaraTelefone = (v) => {
+            v = limparDoc(v);
+            v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+            if (v.length > 13) v = v.replace(/(\d{5})(\d)/, "$1-$2");
+            else v = v.replace(/(\d{4})(\d)/, "$1-$2");
+            return v.substring(0, 15);
+        };
+
+        // --- LINKS SOCIAIS (WHATSAPP, TEAMS, OUTLOOK) ---
+        const updateSocialLinks = () => {
+            const emailVal = campo('email')?.value || '';
+            const telVal = limparDoc(campo('telefone')?.value || '');
+            const lnkOutlook = document.getElementById('lnkOutlook');
+            const lnkTeams = document.getElementById('lnkTeams');
+            const lnkZap = document.getElementById('lnkZap');
+
+            if (emailVal) {
+                if (lnkOutlook) { lnkOutlook.href = `mailto:${emailVal}`; lnkOutlook.target = "_blank"; }
+                if (lnkTeams) { lnkTeams.href = `https://teams.microsoft.com/l/chat/0/0?users=${emailVal}`; lnkTeams.target = "_blank"; }
+            }
+            if (telVal && lnkZap) { lnkZap.href = `https://wa.me/55${telVal}`; lnkZap.target = "_blank"; }
+        };
+
+        // --- LÓGICA DO CHECKBOX ISENTO ---
+        const setupIsentoLogic = () => {
+            const chkIsento = campo('isento_ie');
+            const ieInput = campo('inscricao_estadual');
+            
+            if (chkIsento && ieInput) {
+                const toggleIE = () => {
+                    if (chkIsento.checked) {
+                        ieInput.value = "ISENTO";
+                        ieInput.readOnly = true;
+                        ieInput.classList.add('bg-light');
+                    } else {
+                        if (ieInput.value === "ISENTO") ieInput.value = "";
+                        ieInput.readOnly = false;
+                        ieInput.classList.remove('bg-light');
+                    }
+                };
+                chkIsento.addEventListener('change', toggleIE);
+                toggleIE(); 
+            }
+        };
+
+        // --- CONSULTA CNPJ ---
+        const setupCNPJ = () => {
+            const cnpjInput = campo('cnpj');
+            if (!cnpjInput) return;
+
+            cnpjInput.addEventListener('input', (e) => e.target.value = aplicarMascaraCNPJ(e.target.value));
+            cnpjInput.addEventListener('blur', function() {
+                const cnpjLimpo = limparDoc(this.value);
+                if (cnpjLimpo.length === 14) {
+                    fetch(`https://publica.cnpj.ws/cnpj/${cnpjLimpo}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.estabelecimento) {
+                                const est = data.estabelecimento;
+                                if (campo('razao_social')) campo('razao_social').value = data.razao_social || '';
+                                if (campo('nome_fantasia')) campo('nome_fantasia').value = est.nome_fantasia || data.razao_social;
+                                
+                                // RESTAURADO: Preenchimento do Contato Principal (Sócios)
+                                if (campo('contato_principal') && data.socios && data.socios.length > 0) {
+                                    campo('contato_principal').value = data.socios[0].nome.toUpperCase();
+                                }
+
+                                // Inscrição Estadual Automática
+                                if (campo('inscricao_estadual') && est.inscricoes_estaduais?.length > 0) {
+                                    campo('inscricao_estadual').value = est.inscricoes_estaduais[0].inscricao_estadual;
+                                    const chk = campo('isento_ie');
+                                    if(chk) chk.checked = false;
+                                }
+
+                                // Endereço
+                                if (campo('cep')) campo('cep').value = aplicarMascaraCEP(est.cep || '');
+                                if (campo('endereco')) campo('endereco').value = (est.tipo_logradouro || '') + ' ' + (est.logradouro || '');
+                                if (campo('numero')) campo('numero').value = est.numero || '';
+                                if (campo('bairro')) campo('bairro').value = est.bairro || '';
+                                if (campo('cidade')) campo('cidade').value = est.cidade?.nome || '';
+                                if (campo('uf')) campo('uf').value = est.estado?.sigla || '';
+                                
+                                // Contato
+                                if (campo('email')) campo('email').value = est.email || '';
+                                if (est.telefone1 && campo('telefone')) {
+                                    campo('telefone').value = aplicarMascaraTelefone(est.ddd1 + est.telefone1);
+                                }
+                                updateSocialLinks();
+                            }
+                        });
+                }
+            });
+        };
+
+        // --- INICIALIZAÇÃO ---
+        const init = () => {
+            setupCNPJ();
+            setupIsentoLogic();
+            
+            // Máscaras de Edição
+            if (campo('cnpj')?.value) campo('cnpj').value = aplicarMascaraCNPJ(campo('cnpj').value);
+            if (campo('cep')?.value) campo('cep').value = aplicarMascaraCEP(campo('cep').value);
+            if (campo('telefone')?.value) campo('telefone').value = aplicarMascaraTelefone(campo('telefone').value);
+            
+            // Listeners CEP e Contatos
+            campo('cep')?.addEventListener('input', (e) => e.target.value = aplicarMascaraCEP(e.target.value));
+            campo('telefone')?.addEventListener('input', (e) => {
+                e.target.value = aplicarMascaraTelefone(e.target.value);
+                updateSocialLinks();
+            });
+            campo('email')?.addEventListener('input', updateSocialLinks);
+
+            updateSocialLinks();
+        };
+
+        setTimeout(init, 150);
+    })();
+</script>

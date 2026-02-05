@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Dashboard Financeiro Premium{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Dashboard Financeiro</h1>
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill shadow-sm" type="button" data-toggle="dropdown">
+                <i class="fas fa-download fa-sm mr-2"></i>Exportar
+            </button>
+            <div class="dropdown-menu shadow border-0 text-sm">
+                <a class="dropdown-item" href="{% url 'financeiro:fatura_planilha' %}">Planilha de Receitas</a>
+                <a class="dropdown-item" href="{% url 'financeiro:despesa_planilha' %}">Planilha de Despesas</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4 border-0 rounded-12 bg-light">
+        <div class="card-body py-3">
+            <form method="GET" class="form-inline d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-filter text-primary mr-3"></i>
+                    <label class="mr-2 text-xs font-weight-bold text-uppercase">Período:</label>
+                    <input type="date" name="data_inicio" value="{{ data_inicio }}" class="form-control form-control-sm border-0 shadow-sm mr-2 rounded-pill px-3">
+                    <span class="mr-2 text-muted text-xs">até</span>
+                    <input type="date" name="data_fim" value="{{ data_fim }}" class="form-control form-control-sm border-0 shadow-sm mr-3 rounded-pill px-3">
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm">
+                        <i class="fas fa-sync-alt mr-1"></i> Atualizar
+                    </button>
+                </div>
+                <div>
+                    <a href="{% url 'financeiro:dashboard' %}" class="btn btn-sm btn-link text-muted text-xs">Limpar Filtros</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2 border-0 rounded-12">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total a Receber</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ total_receber|intcomma }}</div>
+                        </div>
+                        <div class="col-auto"><i class="fas fa-hand-holding-usd fa-2x text-gray-300"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2 border-0 rounded-12">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Total a Pagar</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ total_pagar|intcomma }}</div>
+                        </div>
+                        <div class="col-auto"><i class="fas fa-file-invoice-dollar fa-2x text-gray-300"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2 border-0 rounded-12">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Saldo Projetado</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ saldo_liquido|intcomma }}</div>
+                        </div>
+                        <div class="col-auto"><i class="fas fa-piggy-bank fa-2x text-gray-300"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2 border-0 rounded-12 bg-light">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Inadimplência</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ total_vencido|intcomma }}</div>
+                        </div>
+                        <div class="col-auto"><i class="fas fa-exclamation-triangle fa-2x text-warning"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card shadow mb-4 border-0 rounded-15">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Fluxo de Caixa (Tendência)</h6>
+                </div>
+                <div class="card-body">
+                    <div style="height: 320px;"><canvas id="fluxoCaixaChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card shadow mb-4 border-0 rounded-15">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="m-0 font-weight-bold text-primary">Gastos por Centro de Custo</h6>
+                </div>
+                <div class="card-body">
+                    <div style="height: 250px;"><canvas id="centroCustoDonut"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4 border-0 rounded-15 text-sm">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Receber (Próximos 7 dias)</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover m-0 table-sm">
+                        <thead class="bg-light text-xs font-weight-bold">
+                            <tr><th class="pl-3">CLIENTE</th><th>VENC.</th><th class="text-right pr-3">VALOR</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for f in receitas_7_dias %}
+                            <tr>
+                                <td class="pl-3 py-2 font-weight-bold">{{ f.cliente.razao_social|truncatechars:25 }}</td>
+                                <td>{% if f.data_vencimento == hoje %}<span class="badge badge-warning text-dark">HOJE</span>{% else %}{{ f.data_vencimento|date:"d/m" }}{% endif %}</td>
+                                <td class="text-right pr-3 text-primary font-weight-bold">R$ {{ f.valor_original|intcomma }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center py-4 text-muted">Sem entradas para a semana.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow mb-4 border-0 rounded-15 text-sm">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-danger">Pagar (Próximos 7 dias)</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover m-0 table-sm">
+                        <thead class="bg-light text-xs font-weight-bold">
+                            <tr><th class="pl-3">DESCRIÇÃO</th><th>VENC.</th><th class="text-right pr-3">VALOR</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for d in despesas_7_dias %}
+                            <tr>
+                                <td class="pl-3 py-2 font-weight-bold">{{ d.descricao|truncatechars:25 }}</td>
+                                <td>{% if d.data_vencimento == hoje %}<span class="badge badge-danger">HOJE</span>{% else %}{{ d.data_vencimento|date:"d/m" }}{% endif %}</td>
+                                <td class="text-right pr-3 text-danger font-weight-bold">R$ {{ d.valor_original|intcomma }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center py-4 text-muted">Sem contas para a semana.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gráfico de Linhas (Fluxo)
+        new Chart(document.getElementById('fluxoCaixaChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [
+                    { label: 'Entradas', data: {{ chart_receitas|safe }}, borderColor: '#4e73df', backgroundColor: 'rgba(78,115,223,0.05)', fill: true, tension: 0.3 },
+                    { label: 'Saídas', data: {{ chart_despesas|safe }}, borderColor: '#e74a3b', backgroundColor: 'rgba(231,74,59,0.05)', fill: true, tension: 0.3 }
+                ]
+            },
+            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } } }
+        });
+
+        // Gráfico Donut (Centros de Custo)
+        new Chart(document.getElementById('centroCustoDonut').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: {{ donut_labels|safe }},
+                datasets: [{
+                    data: {{ donut_data|safe }},
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+                    hoverOffset: 4
+                }]
+            },
+            options: { maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true } } } }
+        });
+    });
+</script>
+{% endblock %}
