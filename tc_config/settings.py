@@ -8,6 +8,12 @@ SECRET_KEY = 'django-insecure-m_k-!0(y8p)n5n8d7m!r$z=d0p9p+s7qg771h23^z6n4k2_r'
 
 DEBUG = False
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://qa.tcdobrasil.com.br',
+    'http://qa.tcdobrasil.com.br',
+    'http://qa.tcdobrasil.com.br:8082'
+]
+
 ALLOWED_HOSTS = ['qa.tcdobrasil.com.br', '10.10.0.102', '10.10.0.101', 'localhost']
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
